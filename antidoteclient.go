@@ -67,8 +67,8 @@ type Connection struct {
 }
 
 type InteractiveTransaction struct {
-	TxID []byte
-	con *Connection
+	txID []byte
+	con  *Connection
 }
 
 func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error) {
@@ -90,8 +90,8 @@ func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error)
 	}
 	txndesc := apbtxnresp.TransactionDescriptor
 	tx = &InteractiveTransaction{
-		con: con,
-		TxID: txndesc,
+		con:  con,
+		txID: txndesc,
 	}
 	return
 }
