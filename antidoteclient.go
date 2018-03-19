@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-	"io"
-	"github.com/golang/protobuf/proto"
-	"encoding/binary"
 )
 
 const INITIAL_POOL_SIZE = 1
@@ -71,21 +68,7 @@ type Connection struct {
 
 type InteractiveTransaction struct {
 	TxID []byte
-	con Connection
-}
-
-func (op *ApbStartTransaction) encode(writer io.Writer) (err error) {
-	msg, err := proto.Marshal(op)
-	if err != nil {
-		return
-	}
-	msgsize := len(msg)
-	buf := make([]byte, 5)
-	binary.BigEndian.PutUint32(buf[0:4], uint32(msgsize))
-	buf[5] = 119
-	writer.Write(buf)
-	writer.Write(msg)
-	return nil
+	con *Connection
 }
 
 func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error) {
@@ -96,6 +79,19 @@ func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error)
 	apbtxn := &ApbStartTransaction{
 		Properties: &ApbTxnProperties{},
 	}
-	apbtxn.encode(con)
-	// TODO get response, extract txid, return object
+	err = apbtxn.encode(con)
+	if err != nil {
+		return
+	}
+
+	apbtxnresp, err := decodeStartTransactionResp(con)
+	if err != nil {
+		return
+	}
+	txndesc := apbtxnresp.TransactionDescriptor
+	tx = &InteractiveTransaction{
+		con: con,
+		TxID: txndesc,
+	}
+	return
 }
