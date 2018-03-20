@@ -69,7 +69,7 @@ func encodeMsg(message proto.Message, msgCode byte, writer io.Writer) (err error
 	}
 	msgsize := len(msg)
 	buf := make([]byte, 5)
-	binary.BigEndian.PutUint32(buf[0:4], uint32(msgsize))
+	binary.BigEndian.PutUint32(buf[0:4], uint32(msgsize+1))
 	buf[4] = msgCode
 	writer.Write(buf)
 	writer.Write(msg)

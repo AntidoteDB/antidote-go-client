@@ -76,8 +76,10 @@ func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error)
 	if err != nil {
 		return
 	}
+	readwrite := uint32(0)
+	blue := uint32(0)
 	apbtxn := &ApbStartTransaction{
-		Properties: &ApbTxnProperties{},
+		Properties: &ApbTxnProperties{ReadWrite: &readwrite, RedBlue: &blue},
 	}
 	err = apbtxn.encode(con)
 	if err != nil {
