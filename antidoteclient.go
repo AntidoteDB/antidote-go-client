@@ -98,7 +98,7 @@ func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error)
 	return
 }
 
-func (tx *InteractiveTransaction) update(updates ...*ApbUpdateOp) (op *ApbOperationResp, err error) {
+func (tx *InteractiveTransaction) Update(updates ...*ApbUpdateOp) (op *ApbOperationResp, err error) {
 	apbUpdate := &ApbUpdateObjects{
 		Updates:               updates,
 		TransactionDescriptor: tx.txID,
@@ -110,7 +110,25 @@ func (tx *InteractiveTransaction) update(updates ...*ApbUpdateOp) (op *ApbOperat
 	return decodeOperationResp(tx.con)
 }
 
-func (tx *InteractiveTransaction) read(objects ...*ApbBoundObject) (resp *ApbReadObjectsResp, err error) {
+func (client *Client) StaticUpdate(updates ...*ApbUpdateOp) (op *ApbCommitResp, err error) {
+	apbStaticUpdate := &ApbStaticUpdateObjects{
+		Transaction: &ApbStartTransaction{Properties: &ApbTxnProperties{}},
+		Updates: updates,
+	}
+	con, err := client.getConnection()
+	if err != nil {
+		return
+	}
+	err = apbStaticUpdate.encode(con)
+	if err != nil {
+		return
+	}
+	op, err = decodeCommitResp(con)
+	con.Close()
+	return
+}
+
+func (tx *InteractiveTransaction) Read(objects ...*ApbBoundObject) (resp *ApbReadObjectsResp, err error) {
 	apbUpdate := &ApbReadObjects{
 		TransactionDescriptor: tx.txID,
 		Boundobjects:          objects,
@@ -122,20 +140,42 @@ func (tx *InteractiveTransaction) read(objects ...*ApbBoundObject) (resp *ApbRea
 	return decodeReadObjectsResp(tx.con)
 }
 
-func (tx *InteractiveTransaction) commit() (op *ApbCommitResp, err error) {
+func (client *Client) StaticRead(objects ...*ApbBoundObject) (resp *ApbStaticReadObjectsResp, err error) {
+	apbRead := &ApbStaticReadObjects{
+		Transaction: &ApbStartTransaction{Properties: &ApbTxnProperties{}},
+		Objects: objects,
+	}
+	con, err := client.getConnection()
+	if err != nil {
+		return
+	}
+	err = apbRead.encode(con)
+	if err != nil {
+		return
+	}
+	resp, err = decodeStaticReadObjectsResp(con)
+	con.Close()
+	return
+}
+
+func (tx *InteractiveTransaction) Commit() (op *ApbCommitResp, err error) {
 	msg := &ApbCommitTransaction{TransactionDescriptor: tx.txID}
 	err = msg.encode(tx.con)
 	if err != nil {
 		return
 	}
-	return decodeCommitResp(tx.con)
+	op, err = decodeCommitResp(tx.con)
+	tx.con.Close()
+	return
 }
 
-func (tx *InteractiveTransaction) abort() (op *ApbOperationResp, err error) {
+func (tx *InteractiveTransaction) Abort() (op *ApbOperationResp, err error) {
 	msg := &ApbAbortTransaction{TransactionDescriptor: tx.txID}
 	err = msg.encode(tx.con)
 	if err != nil {
 		return
 	}
-	return decodeOperationResp(tx.con)
+	op, err = decodeOperationResp(tx.con)
+	tx.con.Close()
+	return
 }
