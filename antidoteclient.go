@@ -1,10 +1,10 @@
 package antidoteclient
 
 import (
-	"gopkg.in/fatih/pool.v2"
-	"net"
 	"fmt"
+	"gopkg.in/fatih/pool.v2"
 	"math/rand"
+	"net"
 	"time"
 )
 
@@ -20,16 +20,16 @@ type Host struct {
 	Port int
 }
 
-func NewClient(hosts []Host) (client *Client, err error) {
+func NewClient(hosts ...Host) (client *Client, err error) {
 	pools := make([]pool.Pool, len(hosts))
 	for i, h := range hosts {
-		p, err := pool.NewChannelPool(INITIAL_POOL_SIZE, MAX_POOL_SIZE, func () (net.Conn, error) { return net.Dial("tcp", fmt.Sprint("{}:{}", h.Name, h.Port)) })
+		p, err := pool.NewChannelPool(INITIAL_POOL_SIZE, MAX_POOL_SIZE, func() (net.Conn, error) { return net.Dial("tcp", fmt.Sprintf("%s:%d", h.Name, h.Port)) })
 		if err != nil {
-			return
+			return nil, err
 		}
 		pools[i] = p
 	}
-	client = &Client {
+	client = &Client{
 		pools: pools,
 	}
 	return
@@ -44,17 +44,17 @@ func (client *Client) Close() {
 func (client *Client) getConnection() (c *Connection, err error) {
 	// maybe make this global?
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for _, i :=  range r.Perm(len(client.pools)) {
+	for _, i := range r.Perm(len(client.pools)) {
 		p := client.pools[i]
 		con, err := p.Get()
 		if err != nil {
-			return
+			return nil, err
 		}
 		c = &Connection{
 			Conn: con,
 			pool: p,
 		}
-		return
+		return c, nil
 	}
 	err = fmt.Errorf("All connections dead")
 	return
@@ -94,4 +94,37 @@ func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error)
 		txID: txndesc,
 	}
 	return
+}
+
+func (tx *InteractiveTransaction) update(updates ...*ApbUpdateOp) (op *ApbOperationResp, err error) {
+	apbUpdate := &ApbUpdateObjects{
+		Updates:               updates,
+		TransactionDescriptor: tx.txID,
+	}
+	err = apbUpdate.encode(tx.con)
+	if err != nil {
+		return
+	}
+	return decodeOperationResp(tx.con)
+}
+
+func (tx *InteractiveTransaction) read(objects ...*ApbBoundObject) (resp *ApbReadObjectsResp, err error) {
+	apbUpdate := &ApbReadObjects{
+		TransactionDescriptor: tx.txID,
+		Boundobjects:          objects,
+	}
+	err = apbUpdate.encode(tx.con)
+	if err != nil {
+		return
+	}
+	return decodeReadObjectsResp(tx.con)
+}
+
+func (tx *InteractiveTransaction) commit() (op *ApbCommitResp, err error) {
+	msg := &ApbCommitTransaction{}
+	err = msg.encode(tx.con)
+	if err != nil {
+		return
+	}
+	return decodeCommitResp(tx.con)
 }
