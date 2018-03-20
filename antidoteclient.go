@@ -123,10 +123,19 @@ func (tx *InteractiveTransaction) read(objects ...*ApbBoundObject) (resp *ApbRea
 }
 
 func (tx *InteractiveTransaction) commit() (op *ApbCommitResp, err error) {
-	msg := &ApbCommitTransaction{}
+	msg := &ApbCommitTransaction{TransactionDescriptor: tx.txID}
 	err = msg.encode(tx.con)
 	if err != nil {
 		return
 	}
 	return decodeCommitResp(tx.con)
+}
+
+func (tx *InteractiveTransaction) abort() (op *ApbOperationResp, err error) {
+	msg := &ApbAbortTransaction{TransactionDescriptor: tx.txID}
+	err = msg.encode(tx.con)
+	if err != nil {
+		return
+	}
+	return decodeOperationResp(tx.con)
 }
