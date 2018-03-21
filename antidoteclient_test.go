@@ -13,34 +13,30 @@ func TestSimple(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer client.Close()
 
 	tx, err := client.StartTransaction()
 	if err != nil {
 		t.Fatal(err)
 	}
-	crdtType := CRDTType_ORSET
-	key := &ApbBoundObject{
-		Bucket: []byte("bucket"),
-		Key:    []byte("keySet"),
-		Type:   &crdtType}
-	addType := ApbSetUpdate_ADD
-	tx.Update(&ApbUpdateOp{
-		Boundobject: key,
-		Operation:   &ApbUpdateOperation{Setop: &ApbSetUpdate{Optype: &addType, Adds: [][]byte{[]byte("test1")}}},
-	})
-	resp, err := tx.Read(key)
+	bucket := Bucket{[]byte("bucket")}
+	key := []byte("keyCounter")
+	_, err = bucket.Update(tx, CounterInc(key, 1))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Print(resp.Objects[0])
+	counterVal, err := bucket.ReadCounter(tx, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Print(counterVal)
 
 	_, err = tx.Commit()
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	client.Close()
 }
 
 func TestSetUpdate(t *testing.T) {
@@ -49,27 +45,30 @@ func TestSetUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer client.Close()
 
 	tx, err := client.StartTransaction()
 	if err != nil {
 		t.Fatal(err)
 	}
-	crdtType := CRDTType_ORSET
-	key := &ApbBoundObject{
-		Bucket: []byte("bucket"),
-		Key:    []byte("keySet"),
-		Type:   &crdtType}
-	addType := ApbSetUpdate_ADD
-	tx.Update(&ApbUpdateOp{
-		Boundobject: key,
-		Operation:   &ApbUpdateOperation{Setop: &ApbSetUpdate{Optype: &addType, Adds: [][]byte{[]byte("test1")}}},
-	})
-	resp, err := tx.Read(key)
+
+	bucket := Bucket{[]byte("bucket")}
+	key := []byte("keySet")
+
+	_, err = bucket.Update(tx, SetAdd(key, []byte("test2")))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Print(resp.Objects[0])
+
+	setVal, err := bucket.ReadSet(tx, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _,v := range setVal {
+		fmt.Println(string(v))
+	}
 
 	_, err = tx.Commit()
 	if err != nil {
@@ -83,13 +82,10 @@ func TestManyUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer client.Close()
 
-	crdtType := CRDTType_COUNTER
-	key := &ApbBoundObject{
-		Bucket: []byte("bucket"),
-		Key:    []byte("keyMany"),
-		Type:   &crdtType}
-	one := int64(1)
+	bucket := Bucket{[]byte("bucket")}
+	key := []byte("keyMany")
 
 	wg := sync.WaitGroup{}
 	wg.Add(10)
@@ -101,12 +97,12 @@ func TestManyUpdates(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				_, err = tx.Update(&ApbUpdateOp{
-					Boundobject: key,
-					Operation:   &ApbUpdateOperation{Counterop: &ApbCounterUpdate{Inc: &one}},
-				})
+				updateResp, err := bucket.Update(tx, CounterInc(key, 1))
 				if err != nil {
 					t.Fatal(err)
+				}
+				if !(*updateResp.Success) {
+					fmt.Printf("Update #%d not successful\n", i)
 				}
 				_, err = tx.Commit()
 				if err != nil {
@@ -120,12 +116,31 @@ func TestManyUpdates(t *testing.T) {
 	}
 	wg.Wait()
 
-	resp, err := client.StaticRead(key)
+	tx := client.CreateStaticTransaction()
+	counterVal, err := bucket.ReadCounter(tx, key)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Print(resp.Objects.Objects[0])
+	fmt.Print(counterVal)
+}
+
+func TestReadMany(t *testing.T) {
+	client, err := NewClient(Host{"127.0.0.1", 8087})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	bucket := Bucket{[]byte("bucket")}
+	key := []byte("keyMany")
+	tx := client.CreateStaticTransaction()
+	counterVal, err := bucket.ReadCounter(tx, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Print(counterVal)
 }
 
 func TestStatic(t *testing.T) {
@@ -133,24 +148,19 @@ func TestStatic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	bucket := Bucket{[]byte("bucket")}
+	key := []byte("keyStatic")
+	tx := client.CreateStaticTransaction()
 
-	crdtType := CRDTType_COUNTER
-	key := &ApbBoundObject{
-		Bucket: []byte("bucket"),
-		Key:    []byte("keyStatic"),
-		Type:   &crdtType}
-	one := int64(1)
-	_, err = client.StaticUpdate(&ApbUpdateOp{
-		Boundobject: key,
-		Operation:   &ApbUpdateOperation{Counterop: &ApbCounterUpdate{Inc: &one}},
-	})
+
+	_, err = bucket.Update(tx, CounterInc(key, 1))
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp, err := client.StaticRead(key)
+	counterVal, err := bucket.ReadCounter(tx, key)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Print(resp.Objects.Objects[0])
+	fmt.Print(counterVal)
 }
