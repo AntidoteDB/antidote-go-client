@@ -20,7 +20,7 @@ func TestSimple(t *testing.T) {
 		t.Fatal(err)
 	}
 	bucket := Bucket{[]byte("bucket")}
-	key := []byte("keyCounter")
+	key := Key("keyCounter")
 	_, err = bucket.Update(tx, CounterInc(key, 1))
 	if err != nil {
 		t.Fatal(err)
@@ -53,9 +53,9 @@ func TestSetUpdate(t *testing.T) {
 	}
 
 	bucket := Bucket{[]byte("bucket")}
-	key := []byte("keySet")
+	key := Key("keySet")
 
-	_, err = bucket.Update(tx, SetAdd(key, []byte("test2")))
+	_, err = bucket.Update(tx, SetAdd(key, []byte("test1")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func TestManyUpdates(t *testing.T) {
 	defer client.Close()
 
 	bucket := Bucket{[]byte("bucket")}
-	key := []byte("keyMany")
+	key := Key("keyMany")
 
 	wg := sync.WaitGroup{}
 	wg.Add(10)
@@ -104,9 +104,12 @@ func TestManyUpdates(t *testing.T) {
 				if !(*updateResp.Success) {
 					fmt.Printf("Update #%d not successful\n", i)
 				}
-				_, err = tx.Commit()
+				commitResp, err := tx.Commit()
 				if err != nil {
 					t.Fatal(err)
+				}
+				if !(*commitResp.Success) {
+					fmt.Printf("Commit #%d not successful\n", i)
 				}
 				if i%1000 == 0 {
 					fmt.Println(i)
@@ -133,7 +136,7 @@ func TestReadMany(t *testing.T) {
 	defer client.Close()
 
 	bucket := Bucket{[]byte("bucket")}
-	key := []byte("keyMany")
+	key := Key("keyMany")
 	tx := client.CreateStaticTransaction()
 	counterVal, err := bucket.ReadCounter(tx, key)
 	if err != nil {
@@ -149,7 +152,7 @@ func TestStatic(t *testing.T) {
 		t.Fatal(err)
 	}
 	bucket := Bucket{[]byte("bucket")}
-	key := []byte("keyStatic")
+	key := Key("keyStatic")
 	tx := client.CreateStaticTransaction()
 
 
