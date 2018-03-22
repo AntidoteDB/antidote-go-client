@@ -21,7 +21,7 @@ func TestSimple(t *testing.T) {
 	}
 	bucket := Bucket{[]byte("bucket")}
 	key := Key("keyCounter")
-	_, err = bucket.Update(tx, CounterInc(key, 1))
+	err = bucket.Update(tx, CounterInc(key, 1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestSimple(t *testing.T) {
 
 	fmt.Print(counterVal)
 
-	_, err = tx.Commit()
+	err = tx.Commit()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func TestSetUpdate(t *testing.T) {
 	bucket := Bucket{[]byte("bucket")}
 	key := Key("keySet")
 
-	_, err = bucket.Update(tx, SetAdd(key, []byte("test1")))
+	err = bucket.Update(tx, SetAdd(key, []byte("test1")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +70,7 @@ func TestSetUpdate(t *testing.T) {
 		fmt.Println(string(v))
 	}
 
-	_, err = tx.Commit()
+	err = tx.Commit()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,19 +97,13 @@ func TestManyUpdates(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				updateResp, err := bucket.Update(tx, CounterInc(key, 1))
+				err = bucket.Update(tx, CounterInc(key, 1))
 				if err != nil {
 					t.Fatal(err)
 				}
-				if !(*updateResp.Success) {
-					fmt.Printf("Update #%d not successful\n", i)
-				}
-				commitResp, err := tx.Commit()
+				err = tx.Commit()
 				if err != nil {
 					t.Fatal(err)
-				}
-				if !(*commitResp.Success) {
-					fmt.Printf("Commit #%d not successful\n", i)
 				}
 				if i%1000 == 0 {
 					fmt.Println(i)
@@ -156,7 +150,7 @@ func TestStatic(t *testing.T) {
 	tx := client.CreateStaticTransaction()
 
 
-	_, err = bucket.Update(tx, CounterInc(key, 1))
+	err = bucket.Update(tx, CounterInc(key, 1))
 	if err != nil {
 		t.Fatal(err)
 	}
