@@ -11,15 +11,21 @@ import (
 const INITIAL_POOL_SIZE = 1
 const MAX_POOL_SIZE = 50
 
+// Represents connections to the Antidote database.
+// Allows to start/create transaction.
 type Client struct {
 	pools []pool.Pool
 }
 
+// Represents an Antidote server.
+// The port needs to be the port of the protocol-buffer interface (usually 8087)
 type Host struct {
 	Name string
 	Port int
 }
 
+// Recreates a new Antidote client connected to the given Antidote servers.
+// Remember to close the client to clean-up the connections in the connection pool
 func NewClient(hosts ...Host) (client *Client, err error) {
 	pools := make([]pool.Pool, len(hosts))
 	for i, h := range hosts {
@@ -35,13 +41,14 @@ func NewClient(hosts ...Host) (client *Client, err error) {
 	return
 }
 
+// Call close after using the client to clean up the connections int he connection pool and release resources.
 func (client *Client) Close() {
 	for _, p := range client.pools {
 		p.Close()
 	}
 }
 
-func (client *Client) getConnection() (c *Connection, err error) {
+func (client *Client) getConnection() (c *connection, err error) {
 	// maybe make this global?
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for _, i := range r.Perm(len(client.pools)) {
@@ -50,7 +57,7 @@ func (client *Client) getConnection() (c *Connection, err error) {
 		if err != nil {
 			return nil, err
 		}
-		c = &Connection{
+		c = &connection{
 			Conn: con,
 			pool: p,
 		}
@@ -61,13 +68,15 @@ func (client *Client) getConnection() (c *Connection, err error) {
 }
 
 // a close already puts the connection back into the right pool
-type Connection struct {
+type connection struct {
 	net.Conn
 	pool pool.Pool
 }
 
 
-
+// Starts an interactive transaction and registers it on the Antidote server.
+// The connection used to issue reads and updates is sticky;
+// interactive transactions are only valid local to the server they are started on.
 func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error) {
 	con, err := client.getConnection()
 	if err != nil {
@@ -95,6 +104,7 @@ func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error)
 	return
 }
 
+// Creates a static transaction object. Does not communicate with the Antidote server.
 func (client *Client) CreateStaticTransaction() *StaticTransaction {
 	return &StaticTransaction{client: client}
 }
