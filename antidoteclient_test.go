@@ -145,6 +145,37 @@ func TestMap(t *testing.T) {
 	}
 }
 
+func TestStatic(t *testing.T) {
+	client, err := NewClient(Host{"127.0.0.1", 8087})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	timestamp := time.Now().Unix()
+	bucketname := fmt.Sprintf("bucket%d", timestamp)
+	bucket := Bucket{[]byte(bucketname)}
+	key := Key("keyStatic")
+	tx := client.CreateStaticTransaction()
+
+	err = bucket.Update(tx, CounterInc(key, 42))
+	if err != nil {
+		t.Fatal(err)
+	}
+	counterVal, err := bucket.ReadCounter(tx, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if counterVal != 42 {
+		t.Fatalf("Counter value should be 42 but is %d", counterVal)
+	}
+}
+
+
+// tests for many updates, not enabled
+
+// this is a bit faster than the sequential one, if number of threads in configured correctly
 func testManyUpdates(t *testing.T) {
 	client, err := NewClient(Host{"127.0.0.1", 8087})
 	if err != nil {
@@ -156,8 +187,11 @@ func testManyUpdates(t *testing.T) {
 	key := Key("keyMany")
 
 	wg := sync.WaitGroup{}
-	wg.Add(10)
-	for k:=0; k<10; k++ {
+
+	numThreads := 3
+
+	wg.Add(numThreads)
+	for k:=0; k<numThreads; k++ {
 		go func() {
 			defer wg.Done()
 			for i := 0; i < 10000; i++ {
@@ -190,6 +224,83 @@ func testManyUpdates(t *testing.T) {
 	fmt.Print(counterVal)
 }
 
+// not as fast as the parallel version, but close
+func testManyUpdatesSeq(t *testing.T) {
+	client, err := NewClient(Host{"127.0.0.1", 8087})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	bucket := Bucket{[]byte("bucket")}
+	key := Key("keyManySeq")
+
+	for i := 0; i < 30000; i++ {
+		tx, err := client.StartTransaction()
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = bucket.Update(tx, CounterInc(key, 1))
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = tx.Commit()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if i%1000 == 0 {
+			fmt.Println(i)
+		}
+	}
+
+	tx := client.CreateStaticTransaction()
+	counterVal, err := bucket.ReadCounter(tx, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Print(counterVal)
+}
+
+// do not issue too many operations in one transaction, it will blow up the transaction cache!
+func testManyUpdatesSeqInTrans(t *testing.T) {
+	client, err := NewClient(Host{"127.0.0.1", 8087})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	bucket := Bucket{[]byte("bucket")}
+	key := Key("keyManySeqTrans")
+
+	tx, err := client.StartTransaction()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 30000; i++ {
+		err = bucket.Update(tx, CounterInc(key, 1))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if i%1000 == 0 {
+			fmt.Println(i)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	txs := client.CreateStaticTransaction()
+	counterVal, err := bucket.ReadCounter(txs, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Print(counterVal)
+}
+
 func testReadMany(t *testing.T) {
 	client, err := NewClient(Host{"127.0.0.1", 8087})
 	if err != nil {
@@ -206,31 +317,4 @@ func testReadMany(t *testing.T) {
 	}
 
 	fmt.Print(counterVal)
-}
-
-func TestStatic(t *testing.T) {
-	client, err := NewClient(Host{"127.0.0.1", 8087})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer client.Close()
-	
-	timestamp := time.Now().Unix()
-	bucketname := fmt.Sprintf("bucket%d", timestamp)
-	bucket := Bucket{[]byte(bucketname)}
-	key := Key("keyStatic")
-	tx := client.CreateStaticTransaction()
-
-	err = bucket.Update(tx, CounterInc(key, 42))
-	if err != nil {
-		t.Fatal(err)
-	}
-	counterVal, err := bucket.ReadCounter(tx, key)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if counterVal != 42 {
-		t.Fatalf("Counter value should be 42 but is %d", counterVal)
-	}
 }
