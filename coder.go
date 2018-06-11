@@ -3,8 +3,9 @@ package antidoteclient
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"io"
+
+	"github.com/golang/protobuf/proto"
 )
 
 func readMsgRaw(reader io.Reader) (data []byte, err error) {
@@ -82,10 +83,6 @@ func decodeOperationResp(reader io.Reader) (op *ApbOperationResp, err error) {
 		return
 	}
 	switch data[0] {
-	case 0:
-		// error
-		err = decodeError(data[1:])
-		return
 	case 111:
 		// transaction response
 		resp := &ApbOperationResp{}
@@ -106,10 +103,6 @@ func decodeStartTransactionResp(reader io.Reader) (op *ApbStartTransactionResp, 
 		return
 	}
 	switch data[0] {
-	case 0:
-		// error
-		err = decodeError(data[1:])
-		return
 	case 124:
 		// transaction response
 		resp := &ApbStartTransactionResp{}
@@ -130,10 +123,6 @@ func decodeReadObjectsResp(reader io.Reader) (op *ApbReadObjectsResp, err error)
 		return
 	}
 	switch data[0] {
-	case 0:
-		// error
-		err = decodeError(data[1:])
-		return
 	case 126:
 		// transaction response
 		resp := &ApbReadObjectsResp{}
@@ -154,10 +143,6 @@ func decodeCommitResp(reader io.Reader) (op *ApbCommitResp, err error) {
 		return
 	}
 	switch data[0] {
-	case 0:
-		// error
-		err = decodeError(data[1:])
-		return
 	case 127:
 		// transaction response
 		resp := &ApbCommitResp{}
@@ -178,10 +163,6 @@ func decodeStaticReadObjectsResp(reader io.Reader) (op *ApbStaticReadObjectsResp
 		return
 	}
 	switch data[0] {
-	case 0:
-		// error
-		err = decodeError(data[1:])
-		return
 	case 128:
 		// transaction response
 		resp := &ApbStaticReadObjectsResp{}
@@ -193,15 +174,5 @@ func decodeStaticReadObjectsResp(reader io.Reader) (op *ApbStaticReadObjectsResp
 		return
 	}
 	err = fmt.Errorf("invalid message code: %d", data[0])
-	return
-}
-
-func decodeError(data []byte) (err error) {
-	resp := &ApbErrorResp{}
-	err = proto.Unmarshal(data, resp)
-	if err != nil {
-		return
-	}
-	err = fmt.Errorf("antidote error code %d, %s", resp.Errcode, string(resp.Errmsg))
 	return
 }

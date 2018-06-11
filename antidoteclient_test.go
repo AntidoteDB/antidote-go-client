@@ -1,10 +1,10 @@
 package antidoteclient
 
 import (
-	"testing"
+	"bytes"
 	"fmt"
 	"sync"
-	"bytes"
+	"testing"
 	"time"
 )
 
@@ -39,7 +39,6 @@ func TestSimple(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	
 	if counterVal != 1 {
 		t.Fatalf("Counter value should be 1 but is %d", counterVal)
 	}
@@ -67,7 +66,6 @@ func TestSetUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-
 	setVal, err := bucket.ReadSet(tx, key)
 	if err != nil {
 		t.Fatal(err)
@@ -78,10 +76,9 @@ func TestSetUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	
-	for _,expected := range []string{"test1", "value2", "inset3"} {
+	for _, expected := range []string{"test1", "value2", "inset3"} {
 		found := false
-		for _,val := range setVal {
+		for _, val := range setVal {
 			if string(val) == expected {
 				found = true
 				break
@@ -124,16 +121,16 @@ func TestMap(t *testing.T) {
 	if v, e := mapVal.Counter(Key("counter")); e != nil || v != 13 {
 		t.Fatalf("Wrong counter value: %d", v)
 	}
-	if v,e := mapVal.Reg(Key("reg")); e != nil || !bytes.Equal(v, []byte("Hello World")) {
+	if v, e := mapVal.Reg(Key("reg")); e != nil || !bytes.Equal(v, []byte("Hello World")) {
 		t.Fatalf("Wrong reg value: %p", v)
 	}
-	v,_ := mapVal.Set(Key("set"))
+	v, _ := mapVal.Set(Key("set"))
 	if len(v) != 2 {
 		t.Fatal("Wrong number of elements in set")
 	}
-	for _,expected := range []string{"A", "B"} {
+	for _, expected := range []string{"A", "B"} {
 		found := false
-		for _,val := range v {
+		for _, val := range v {
 			if string(val) == expected {
 				found = true
 				break
@@ -172,7 +169,6 @@ func TestStatic(t *testing.T) {
 	}
 }
 
-
 // tests for many updates, not enabled
 
 // this is a bit faster than the sequential one, if number of threads in configured correctly
@@ -188,13 +184,13 @@ func testManyUpdates(t *testing.T) {
 
 	wg := sync.WaitGroup{}
 
-	numThreads := 3
+	numThreads := 5
 
 	wg.Add(numThreads)
-	for k:=0; k<numThreads; k++ {
+	for k := 0; k < numThreads; k++ {
 		go func() {
 			defer wg.Done()
-			for i := 0; i < 10000; i++ {
+			for i := 0; i < 6000; i++ {
 				tx, err := client.StartTransaction()
 				if err != nil {
 					t.Fatal(err)

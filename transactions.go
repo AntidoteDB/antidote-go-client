@@ -42,8 +42,8 @@ type CRDTReader interface {
 // Update operations are only visible to reads issued in the context of the same transaction or after committing the transaction.
 // Always commit or abort interactive transactions to clean up the server side!
 type InteractiveTransaction struct {
-	txID []byte
-	con  *connection
+	txID      []byte
+	con       *connection
 	committed bool
 }
 
@@ -121,7 +121,6 @@ func (tx *InteractiveTransaction) Abort() error {
 	return nil
 }
 
-
 // Pseudo transaction to issue reads and updated without starting an interactive transaction.
 // Can be interpreted as starting a transaction for each read or update and directly committing it.
 type StaticTransaction struct {
@@ -131,7 +130,7 @@ type StaticTransaction struct {
 func (tx *StaticTransaction) Update(updates ...*ApbUpdateOp) error {
 	apbStaticUpdate := &ApbStaticUpdateObjects{
 		Transaction: &ApbStartTransaction{Properties: &ApbTxnProperties{}},
-		Updates: updates,
+		Updates:     updates,
 	}
 	con, err := tx.client.getConnection()
 	if err != nil {
@@ -152,11 +151,10 @@ func (tx *StaticTransaction) Update(updates ...*ApbUpdateOp) error {
 	return nil
 }
 
-
 func (tx *StaticTransaction) Read(objects ...*ApbBoundObject) (resp *ApbReadObjectsResp, err error) {
 	apbRead := &ApbStaticReadObjects{
 		Transaction: &ApbStartTransaction{Properties: &ApbTxnProperties{}},
-		Objects: objects,
+		Objects:     objects,
 	}
 	con, err := tx.client.getConnection()
 	if err != nil {
@@ -173,7 +171,6 @@ func (tx *StaticTransaction) Read(objects ...*ApbBoundObject) (resp *ApbReadObje
 	}
 	return sresp.Objects, nil
 }
-
 
 func (bucket *Bucket) ReadSet(tx Transaction, key Key) (val [][]byte, err error) {
 	crdtType := CRDTType_ORSET
@@ -196,7 +193,7 @@ func (bucket *Bucket) ReadReg(tx Transaction, key Key) (val []byte, err error) {
 }
 
 func (bucket *Bucket) ReadMap(tx Transaction, key Key) (val *MapReadResult, err error) {
-	crdtType := CRDTType_AWMAP
+	crdtType := CRDTType_RRMAP
 	resp, err := tx.Read(&ApbBoundObject{Bucket: bucket.Bucket, Key: key, Type: &crdtType})
 	if err != nil {
 		return
@@ -224,7 +221,6 @@ func (bucket *Bucket) ReadCounter(tx Transaction, key Key) (val int32, err error
 	val = *resp.Objects[0].Counter.Value
 	return
 }
-
 
 // Represents the result of reading from a map object.
 // Grants access to the keys of the map to access values of the nested CRDTs.
@@ -255,7 +251,7 @@ func (mrr *MapReadResult) Reg(key Key) (val []byte, err error) {
 // Access the value of the nested add-wins map under the given key
 func (mrr *MapReadResult) Map(key Key) (val *MapReadResult, err error) {
 	for _, me := range mrr.mapResp.Entries {
-		if *me.Key.Type == CRDTType_AWMAP && bytes.Equal(me.Key.Key, key) {
+		if *me.Key.Type == CRDTType_RRMAP && bytes.Equal(me.Key.Key, key) {
 			return &MapReadResult{mapResp: me.Value.Map}, nil
 		}
 	}
@@ -282,7 +278,6 @@ func (mrr *MapReadResult) Counter(key Key) (val int32, err error) {
 	return 0, fmt.Errorf("counter entry with key '%s' not found", key)
 }
 
-
 // Represents updates that can be converted to top-level updates applicable to a bucket
 // or nested updates applicable to a map
 type UpdateConverter interface {
@@ -300,12 +295,12 @@ type CRDTUpdate struct {
 
 // A CRDTUpdater allows to apply updates in the context of a transaction.
 type CRDTUpdater interface {
-	Update(tx Transaction, updates... *CRDTUpdate) error
+	Update(tx Transaction, updates ...*CRDTUpdate) error
 }
 
-func (bucket *Bucket) Update(tx Transaction, updates... *CRDTUpdate) error {
+func (bucket *Bucket) Update(tx Transaction, updates ...*CRDTUpdate) error {
 	updateOps := make([]*ApbUpdateOp, len(updates))
-	for i,v := range updates {
+	for i, v := range updates {
 		updateOps[i] = v.ConvertToToplevel(bucket.Bucket)
 	}
 	return tx.Update(updateOps...)
@@ -328,7 +323,7 @@ func (update *CRDTUpdate) ConvertToNested() *ApbMapNestedUpdate {
 // CRDT update operations
 
 // Represents the update to add an element to an add-wins set
-func SetAdd(key Key, elems ... []byte) *CRDTUpdate {
+func SetAdd(key Key, elems ...[]byte) *CRDTUpdate {
 	optype := ApbSetUpdate_ADD
 	return &CRDTUpdate{
 		Key:  key,
@@ -340,7 +335,7 @@ func SetAdd(key Key, elems ... []byte) *CRDTUpdate {
 }
 
 // Represents the update to remove an element from an add-wins set
-func SetRemove(key Key, elems ... []byte) *CRDTUpdate {
+func SetRemove(key Key, elems ...[]byte) *CRDTUpdate {
 	optype := ApbSetUpdate_REMOVE
 	return &CRDTUpdate{
 		Key:  key,
@@ -385,14 +380,14 @@ func MVRegPut(key Key, value []byte) *CRDTUpdate {
 }
 
 // Represents the update to nested objects of an add-wins map
-func MapUpdate(key Key, updates ... *CRDTUpdate) *CRDTUpdate {
+func MapUpdate(key Key, updates ...*CRDTUpdate) *CRDTUpdate {
 	nupdates := make([]*ApbMapNestedUpdate, len(updates))
-	for i,v := range updates {
+	for i, v := range updates {
 		nupdates[i] = v.ConvertToNested()
 	}
 	return &CRDTUpdate{
 		Key:  key,
-		Type: CRDTType_AWMAP,
+		Type: CRDTType_RRMAP,
 		Update: &ApbUpdateOperation{
 			Mapop: &ApbMapUpdate{Updates: nupdates},
 		},

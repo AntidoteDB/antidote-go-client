@@ -2,10 +2,11 @@ package antidoteclient
 
 import (
 	"fmt"
-	"gopkg.in/fatih/pool.v2"
 	"math/rand"
 	"net"
 	"time"
+
+	"gopkg.in/fatih/pool.v2"
 )
 
 const INITIAL_POOL_SIZE = 1
@@ -72,7 +73,6 @@ type connection struct {
 	net.Conn
 	pool pool.Pool
 }
-
 
 // Starts an interactive transaction and registers it on the Antidote server.
 // The connection used to issue reads and updates is sticky;
