@@ -341,7 +341,7 @@ func SetRemove(key Key, elems ...[]byte) *CRDTUpdate {
 		Key:  key,
 		Type: CRDTType_ORSET,
 		Update: &ApbUpdateOperation{
-			Setop: &ApbSetUpdate{Adds: elems, Optype: &optype},
+			Setop: &ApbSetUpdate{Rems: elems, Optype: &optype},
 		},
 	}
 }

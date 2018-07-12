@@ -90,6 +90,77 @@ func TestSetUpdate(t *testing.T) {
 	}
 }
 
+func TestSetUpdateRemove(t *testing.T) {
+
+	client, err := NewClient(Host{"127.0.0.1", 8087})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	tx, err := client.StartTransaction()
+	if err != nil {
+		t.Fatal(err)
+	}
+	timestamp := time.Now().Unix()
+	bucketname := fmt.Sprintf("bucket%d", timestamp)
+	bucket := Bucket{[]byte(bucketname)}
+	key := Key("keySet")
+
+	err = bucket.Update(tx, SetAdd(key, []byte("test1"), []byte("value2"), []byte("inset3")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx, err = client.StartTransaction()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = bucket.Update(tx, SetRemove(key, []byte("test1")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = tx.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx, err = client.StartTransaction()
+	if err != nil {
+		t.Fatal(err)
+	}
+	setVal, err := bucket.ReadSet(tx, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(setVal) != 2 {
+		t.Fatalf("Wrong size: %s", setVal)
+	}
+	for _, expected := range []string{"value2", "inset3"} {
+		found := false
+		for _, val := range setVal {
+			if string(val) == expected {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("expected value %s not found in result (%s)", expected, setVal)
+		}
+	}
+}
+
 func TestMap(t *testing.T) {
 	client, err := NewClient(Host{"127.0.0.1", 8087})
 	if err != nil {
