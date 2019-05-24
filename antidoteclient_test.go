@@ -386,7 +386,7 @@ func testReadMany(t *testing.T) {
 	fmt.Print(counterVal)
 }
 
-func TestMapListMapEntries(t *testing.T) {
+func TestMapListMapKeys(t *testing.T) {
 	client, err := NewClient(Host{"127.0.0.1", 8087})
 	if err != nil {
 		t.Fatal(err)
@@ -414,27 +414,24 @@ func TestMapListMapEntries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	entryList, err := mapV.ListMapEntries()
+	keyList := mapV.ListMapKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, expected := range []struct {
-		key      []byte
-		crdtType CRDTType
-	}{
+	for _, expected := range []MapEntryKey{
 		{[]byte("counter"), CRDTType_COUNTER},
 		{[]byte("reg"), CRDTType_LWWREG},
 		{[]byte("set"), CRDTType_ORSET},
 	} {
 		found := false
-		for _, entry := range entryList {
-			if bytes.Equal(entry.Key, expected.key) && entry.CrdtType == expected.crdtType {
+		for _, entry := range keyList {
+			if bytes.Equal(entry.Key, expected.Key) && entry.CrdtType == expected.CrdtType {
 				found = true
 				break
 			}
 		}
 		if !found {
-			t.Fatalf("expected value %s not found in result (%s)", expected.key, entryList)
+			t.Fatalf("expected value %s not found in result (%s)", expected.Key, keyList)
 		}
 	}
 }
