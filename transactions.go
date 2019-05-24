@@ -278,6 +278,24 @@ func (mrr *MapReadResult) Counter(key Key) (val int32, err error) {
 	return 0, fmt.Errorf("counter entry with key '%s' not found", key)
 }
 
+// MapEntryKey represents the key and type of a map entry (embedded CRDT).
+type MapEntryKey struct {
+	Key      []byte
+	CrdtType CRDTType
+}
+
+// ListMapKeys gives access to the keys and types of map entries (embedded CRDTs).
+func (mrr *MapReadResult) ListMapKeys() []MapEntryKey {
+	keyList := make([]MapEntryKey, len(mrr.mapResp.Entries))
+	for i, me := range mrr.mapResp.Entries {
+		keyList[i] = MapEntryKey{
+			Key:      me.Key.Key,
+			CrdtType: *me.Key.Type,
+		}
+	}
+	return keyList
+}
+
 // Represents updates that can be converted to top-level updates applicable to a bucket
 // or nested updates applicable to a map
 type UpdateConverter interface {

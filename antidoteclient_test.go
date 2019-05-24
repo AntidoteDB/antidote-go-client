@@ -385,3 +385,53 @@ func testReadMany(t *testing.T) {
 
 	fmt.Print(counterVal)
 }
+
+func TestMapListMapKeys(t *testing.T) {
+	client, err := NewClient(Host{"127.0.0.1", 8087})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	tx, err := client.StartTransaction()
+	if err != nil {
+		t.Fatal(err)
+	}
+	timestamp := time.Now().Unix()
+	bucketname := fmt.Sprintf("bucket%d", timestamp)
+	bucket := Bucket{[]byte(bucketname)}
+	key := Key("keyMap")
+
+	err = bucket.Update(tx, MapUpdate(key,
+		CounterInc(Key("counter"), 13),
+		RegPut(Key("reg"), []byte("Hello World")),
+		SetAdd(Key("set"), []byte("A"), []byte("B"))))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mapV, err := bucket.ReadMap(tx, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keyList := mapV.ListMapKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []MapEntryKey{
+		{[]byte("counter"), CRDTType_COUNTER},
+		{[]byte("reg"), CRDTType_LWWREG},
+		{[]byte("set"), CRDTType_ORSET},
+	} {
+		found := false
+		for _, entry := range keyList {
+			if bytes.Equal(entry.Key, expected.Key) && entry.CrdtType == expected.CrdtType {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("expected value %s not found in result (%s)", expected.Key, keyList)
+		}
+	}
+}
