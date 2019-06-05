@@ -415,9 +415,6 @@ func TestMapListMapKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 	keyList := mapV.ListMapKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
 	for _, expected := range []MapEntryKey{
 		{[]byte("counter"), CRDTType_COUNTER},
 		{[]byte("reg"), CRDTType_LWWREG},
