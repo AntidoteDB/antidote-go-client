@@ -88,7 +88,10 @@ func (tx *InteractiveTransaction) Commit() error {
 			return err
 		}
 		op, err := decodeCommitResp(tx.con)
-		tx.con.Close()
+		if err != nil {
+			return err
+		}
+		err = tx.con.Close()
 		if err != nil {
 			return err
 		}
@@ -110,7 +113,10 @@ func (tx *InteractiveTransaction) Abort() error {
 			return err
 		}
 		op, err := decodeOperationResp(tx.con)
-		tx.con.Close()
+		if err != nil {
+			return err
+		}
+		err = tx.con.Close()
 		if err != nil {
 			return err
 		}
@@ -141,7 +147,10 @@ func (tx *StaticTransaction) Update(updates ...*ApbUpdateOp) error {
 		return err
 	}
 	resp, err := decodeCommitResp(con)
-	con.Close()
+	if err != nil {
+		return err
+	}
+	err = con.Close()
 	if err != nil {
 		return err
 	}
@@ -165,7 +174,10 @@ func (tx *StaticTransaction) Read(objects ...*ApbBoundObject) (resp *ApbReadObje
 		return
 	}
 	sresp, err := decodeStaticReadObjectsResp(con)
-	con.Close()
+	if err != nil {
+		return
+	}
+	err = con.Close()
 	if err != nil {
 		return
 	}

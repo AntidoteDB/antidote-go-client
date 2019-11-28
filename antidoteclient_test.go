@@ -243,7 +243,7 @@ func TestStatic(t *testing.T) {
 // tests for many updates, not enabled
 
 // this is a bit faster than the sequential one, if number of threads in configured correctly
-func testManyUpdates(t *testing.T) {
+func TestManyUpdates(t *testing.T) {
 	client, err := NewClient(Host{"127.0.0.1", 8087})
 	if err != nil {
 		t.Fatal(err)
@@ -292,7 +292,7 @@ func testManyUpdates(t *testing.T) {
 }
 
 // not as fast as the parallel version, but close
-func testManyUpdatesSeq(t *testing.T) {
+func TestManyUpdatesSeq(t *testing.T) {
 	client, err := NewClient(Host{"127.0.0.1", 8087})
 	if err != nil {
 		t.Fatal(err)
@@ -330,7 +330,7 @@ func testManyUpdatesSeq(t *testing.T) {
 }
 
 // do not issue too many operations in one transaction, it will blow up the transaction cache!
-func testManyUpdatesSeqInTrans(t *testing.T) {
+func TestManyUpdatesSeqInTrans(t *testing.T) {
 	client, err := NewClient(Host{"127.0.0.1", 8087})
 	if err != nil {
 		t.Fatal(err)
@@ -368,7 +368,7 @@ func testManyUpdatesSeqInTrans(t *testing.T) {
 	fmt.Print(counterVal)
 }
 
-func testReadMany(t *testing.T) {
+func TestReadMany(t *testing.T) {
 	client, err := NewClient(Host{"127.0.0.1", 8087})
 	if err != nil {
 		t.Fatal(err)
