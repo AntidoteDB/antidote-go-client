@@ -108,3 +108,81 @@ func (client *Client) StartTransaction() (tx *InteractiveTransaction, err error)
 func (client *Client) CreateStaticTransaction() *StaticTransaction {
 	return &StaticTransaction{client: client}
 }
+
+// Creates a data center with the given node names
+func (client *Client) CreateDc(nodeNames []string) (err error) {
+	con, err := client.getConnection()
+	if err != nil {
+		return
+	}
+	createDc := &ApbCreateDC{
+		Nodes: nodeNames,
+	}
+
+	err = createDc.encode(con)
+	if err != nil {
+		return
+	}
+
+	resp, err := decodeApbCreateDCResp(con)
+	if err != nil {
+		return
+	}
+	if !*resp.Success {
+		return fmt.Errorf("Could not create DC, error code %v", *resp.Errorcode)
+	}
+	return
+}
+
+// Get a connection descriptor for the data center
+// The descriptor can then be used with ConnectToDCs
+func (client *Client) GetConnectionDescriptor() (descriptor []byte, err error) {
+	con, err := client.getConnection()
+	if err != nil {
+		return
+	}
+	getCD := &ApbGetConnectionDescriptor{
+	}
+
+	err = getCD.encode(con)
+	if err != nil {
+		return
+	}
+
+	resp, err := decodeApbGetConnectionDescriptorResp(con)
+	if err != nil {
+		return
+	}
+	if !*resp.Success {
+		err = fmt.Errorf("Could not create DC, error code %v", *resp.Errorcode)
+		return
+	}
+	descriptor = resp.Descriptor_
+	return
+}
+
+
+func (client *Client) ConnectToDCs(descriptors [][]byte) (err error) {
+	con, err := client.getConnection()
+	if err != nil {
+		return
+	}
+	getCD := &ApbConnectToDCs{
+		Descriptors: descriptors,
+	}
+
+	err = getCD.encode(con)
+	if err != nil {
+		return
+	}
+
+	resp, err := decodeApbConnectToDCsResp(con)
+	if err != nil {
+		return
+	}
+	if !*resp.Success {
+		err = fmt.Errorf("Could not create DC, error code %v", *resp.Errorcode)
+		return
+	}
+	return
+}

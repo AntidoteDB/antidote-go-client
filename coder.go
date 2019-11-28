@@ -63,6 +63,20 @@ func (op *ApbStaticReadObjects) encode(writer io.Writer) (err error) {
 	return encodeMsg(op, 123, writer)
 }
 
+func (op *ApbCreateDC) encode(writer io.Writer) (err error) {
+	return encodeMsg(op, 129, writer)
+}
+
+func (op *ApbConnectToDCs) encode(writer io.Writer) (err error) {
+	return encodeMsg(op, 131, writer)
+}
+
+func (op *ApbGetConnectionDescriptor) encode(writer io.Writer) (err error) {
+	return encodeMsg(op, 133, writer)
+}
+
+
+
 func encodeMsg(message proto.Message, msgCode byte, writer io.Writer) (err error) {
 	msg, err := proto.Marshal(message)
 	if err != nil {
@@ -166,6 +180,67 @@ func decodeStaticReadObjectsResp(reader io.Reader) (op *ApbStaticReadObjectsResp
 	case 128:
 		// transaction response
 		resp := &ApbStaticReadObjectsResp{}
+		err = proto.Unmarshal(data[1:], resp)
+		if err != nil {
+			return
+		}
+		op = resp
+		return
+	}
+	err = fmt.Errorf("invalid message code: %d", data[0])
+	return
+}
+
+
+func decodeApbCreateDCResp(reader io.Reader) (op *ApbCreateDCResp, err error) {
+	data, err := readMsgRaw(reader)
+	if err != nil {
+		return
+	}
+	switch data[0] {
+	case 130:
+		// transaction response
+		resp := &ApbCreateDCResp{}
+		err = proto.Unmarshal(data[1:], resp)
+		if err != nil {
+			return
+		}
+		op = resp
+		return
+	}
+	err = fmt.Errorf("invalid message code: %d", data[0])
+	return
+}
+
+func decodeApbConnectToDCsResp(reader io.Reader) (op *ApbConnectToDCsResp, err error) {
+	data, err := readMsgRaw(reader)
+	if err != nil {
+		return
+	}
+	switch data[0] {
+	case 132:
+		// transaction response
+		resp := &ApbConnectToDCsResp{}
+		err = proto.Unmarshal(data[1:], resp)
+		if err != nil {
+			return
+		}
+		op = resp
+		return
+	}
+	err = fmt.Errorf("invalid message code: %d", data[0])
+	return
+}
+
+func decodeApbGetConnectionDescriptorResp(reader io.Reader) (op *ApbGetConnectionDescriptorResp, err error) {
+	data, err := readMsgRaw(reader)
+	if err != nil {
+		return
+	}
+	switch data[0] {
+	case 134:
+		// transaction response
+		resp := &ApbGetConnectionDescriptorResp{}
 		err = proto.Unmarshal(data[1:], resp)
 		if err != nil {
 			return

@@ -3,9 +3,11 @@
 
 package antidoteclient
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type CRDTType int32
 
@@ -31,6 +33,7 @@ const (
 	CRDTType_FATCOUNTER CRDTType = 12
 	CRDTType_FLAG_EW    CRDTType = 13
 	CRDTType_FLAG_DW    CRDTType = 14
+	CRDTType_BCOUNTER   CRDTType = 15
 )
 
 var CRDTType_name = map[int32]string{
@@ -44,7 +47,9 @@ var CRDTType_name = map[int32]string{
 	12: "FATCOUNTER",
 	13: "FLAG_EW",
 	14: "FLAG_DW",
+	15: "BCOUNTER",
 }
+
 var CRDTType_value = map[string]int32{
 	"COUNTER":    3,
 	"ORSET":      4,
@@ -56,6 +61,7 @@ var CRDTType_value = map[string]int32{
 	"FATCOUNTER": 12,
 	"FLAG_EW":    13,
 	"FLAG_DW":    14,
+	"BCOUNTER":   15,
 }
 
 func (x CRDTType) Enum() *CRDTType {
@@ -63,9 +69,11 @@ func (x CRDTType) Enum() *CRDTType {
 	*p = x
 	return p
 }
+
 func (x CRDTType) String() string {
 	return proto.EnumName(CRDTType_name, int32(x))
 }
+
 func (x *CRDTType) UnmarshalJSON(data []byte) error {
 	value, err := proto.UnmarshalJSONEnum(CRDTType_value, data, "CRDTType")
 	if err != nil {
@@ -74,8 +82,9 @@ func (x *CRDTType) UnmarshalJSON(data []byte) error {
 	*x = CRDTType(value)
 	return nil
 }
+
 func (CRDTType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{0}
+	return fileDescriptor_97d48018c08bbbb3, []int{0}
 }
 
 type ApbSetUpdate_SetOpType int32
@@ -89,6 +98,7 @@ var ApbSetUpdate_SetOpType_name = map[int32]string{
 	1: "ADD",
 	2: "REMOVE",
 }
+
 var ApbSetUpdate_SetOpType_value = map[string]int32{
 	"ADD":    1,
 	"REMOVE": 2,
@@ -99,9 +109,11 @@ func (x ApbSetUpdate_SetOpType) Enum() *ApbSetUpdate_SetOpType {
 	*p = x
 	return p
 }
+
 func (x ApbSetUpdate_SetOpType) String() string {
 	return proto.EnumName(ApbSetUpdate_SetOpType_name, int32(x))
 }
+
 func (x *ApbSetUpdate_SetOpType) UnmarshalJSON(data []byte) error {
 	value, err := proto.UnmarshalJSONEnum(ApbSetUpdate_SetOpType_value, data, "ApbSetUpdate_SetOpType")
 	if err != nil {
@@ -110,11 +122,60 @@ func (x *ApbSetUpdate_SetOpType) UnmarshalJSON(data []byte) error {
 	*x = ApbSetUpdate_SetOpType(value)
 	return nil
 }
+
 func (ApbSetUpdate_SetOpType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{2, 0}
+	return fileDescriptor_97d48018c08bbbb3, []int{3, 0}
 }
 
-// Counter increment requenst
+// Riak Error response
+type ApbErrorResp struct {
+	Errmsg               []byte   `protobuf:"bytes,1,req,name=errmsg" json:"errmsg,omitempty"`
+	Errcode              *uint32  `protobuf:"varint,2,req,name=errcode" json:"errcode,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ApbErrorResp) Reset()         { *m = ApbErrorResp{} }
+func (m *ApbErrorResp) String() string { return proto.CompactTextString(m) }
+func (*ApbErrorResp) ProtoMessage()    {}
+func (*ApbErrorResp) Descriptor() ([]byte, []int) {
+	return fileDescriptor_97d48018c08bbbb3, []int{0}
+}
+
+func (m *ApbErrorResp) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ApbErrorResp.Unmarshal(m, b)
+}
+func (m *ApbErrorResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ApbErrorResp.Marshal(b, m, deterministic)
+}
+func (m *ApbErrorResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbErrorResp.Merge(m, src)
+}
+func (m *ApbErrorResp) XXX_Size() int {
+	return xxx_messageInfo_ApbErrorResp.Size(m)
+}
+func (m *ApbErrorResp) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApbErrorResp.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApbErrorResp proto.InternalMessageInfo
+
+func (m *ApbErrorResp) GetErrmsg() []byte {
+	if m != nil {
+		return m.Errmsg
+	}
+	return nil
+}
+
+func (m *ApbErrorResp) GetErrcode() uint32 {
+	if m != nil && m.Errcode != nil {
+		return *m.Errcode
+	}
+	return 0
+}
+
+// Counter increment request
 type ApbCounterUpdate struct {
 	// inc indicates the value to be incremented. To decrement, use a negative value. If no value is given, it will be considered as an increment by 1
 	Inc                  *int64   `protobuf:"zigzag64,1,opt,name=inc" json:"inc,omitempty"`
@@ -127,16 +188,17 @@ func (m *ApbCounterUpdate) Reset()         { *m = ApbCounterUpdate{} }
 func (m *ApbCounterUpdate) String() string { return proto.CompactTextString(m) }
 func (*ApbCounterUpdate) ProtoMessage()    {}
 func (*ApbCounterUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{0}
+	return fileDescriptor_97d48018c08bbbb3, []int{1}
 }
+
 func (m *ApbCounterUpdate) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbCounterUpdate.Unmarshal(m, b)
 }
 func (m *ApbCounterUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbCounterUpdate.Marshal(b, m, deterministic)
 }
-func (dst *ApbCounterUpdate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbCounterUpdate.Merge(dst, src)
+func (m *ApbCounterUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbCounterUpdate.Merge(m, src)
 }
 func (m *ApbCounterUpdate) XXX_Size() int {
 	return xxx_messageInfo_ApbCounterUpdate.Size(m)
@@ -166,16 +228,17 @@ func (m *ApbGetCounterResp) Reset()         { *m = ApbGetCounterResp{} }
 func (m *ApbGetCounterResp) String() string { return proto.CompactTextString(m) }
 func (*ApbGetCounterResp) ProtoMessage()    {}
 func (*ApbGetCounterResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{1}
+	return fileDescriptor_97d48018c08bbbb3, []int{2}
 }
+
 func (m *ApbGetCounterResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbGetCounterResp.Unmarshal(m, b)
 }
 func (m *ApbGetCounterResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbGetCounterResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbGetCounterResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbGetCounterResp.Merge(dst, src)
+func (m *ApbGetCounterResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbGetCounterResp.Merge(m, src)
 }
 func (m *ApbGetCounterResp) XXX_Size() int {
 	return xxx_messageInfo_ApbGetCounterResp.Size(m)
@@ -207,16 +270,17 @@ func (m *ApbSetUpdate) Reset()         { *m = ApbSetUpdate{} }
 func (m *ApbSetUpdate) String() string { return proto.CompactTextString(m) }
 func (*ApbSetUpdate) ProtoMessage()    {}
 func (*ApbSetUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{2}
+	return fileDescriptor_97d48018c08bbbb3, []int{3}
 }
+
 func (m *ApbSetUpdate) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbSetUpdate.Unmarshal(m, b)
 }
 func (m *ApbSetUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbSetUpdate.Marshal(b, m, deterministic)
 }
-func (dst *ApbSetUpdate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbSetUpdate.Merge(dst, src)
+func (m *ApbSetUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbSetUpdate.Merge(m, src)
 }
 func (m *ApbSetUpdate) XXX_Size() int {
 	return xxx_messageInfo_ApbSetUpdate.Size(m)
@@ -260,16 +324,17 @@ func (m *ApbGetSetResp) Reset()         { *m = ApbGetSetResp{} }
 func (m *ApbGetSetResp) String() string { return proto.CompactTextString(m) }
 func (*ApbGetSetResp) ProtoMessage()    {}
 func (*ApbGetSetResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{3}
+	return fileDescriptor_97d48018c08bbbb3, []int{4}
 }
+
 func (m *ApbGetSetResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbGetSetResp.Unmarshal(m, b)
 }
 func (m *ApbGetSetResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbGetSetResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbGetSetResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbGetSetResp.Merge(dst, src)
+func (m *ApbGetSetResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbGetSetResp.Merge(m, src)
 }
 func (m *ApbGetSetResp) XXX_Size() int {
 	return xxx_messageInfo_ApbGetSetResp.Size(m)
@@ -299,16 +364,17 @@ func (m *ApbRegUpdate) Reset()         { *m = ApbRegUpdate{} }
 func (m *ApbRegUpdate) String() string { return proto.CompactTextString(m) }
 func (*ApbRegUpdate) ProtoMessage()    {}
 func (*ApbRegUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{4}
+	return fileDescriptor_97d48018c08bbbb3, []int{5}
 }
+
 func (m *ApbRegUpdate) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbRegUpdate.Unmarshal(m, b)
 }
 func (m *ApbRegUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbRegUpdate.Marshal(b, m, deterministic)
 }
-func (dst *ApbRegUpdate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbRegUpdate.Merge(dst, src)
+func (m *ApbRegUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbRegUpdate.Merge(m, src)
 }
 func (m *ApbRegUpdate) XXX_Size() int {
 	return xxx_messageInfo_ApbRegUpdate.Size(m)
@@ -338,16 +404,17 @@ func (m *ApbGetRegResp) Reset()         { *m = ApbGetRegResp{} }
 func (m *ApbGetRegResp) String() string { return proto.CompactTextString(m) }
 func (*ApbGetRegResp) ProtoMessage()    {}
 func (*ApbGetRegResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{5}
+	return fileDescriptor_97d48018c08bbbb3, []int{6}
 }
+
 func (m *ApbGetRegResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbGetRegResp.Unmarshal(m, b)
 }
 func (m *ApbGetRegResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbGetRegResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbGetRegResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbGetRegResp.Merge(dst, src)
+func (m *ApbGetRegResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbGetRegResp.Merge(m, src)
 }
 func (m *ApbGetRegResp) XXX_Size() int {
 	return xxx_messageInfo_ApbGetRegResp.Size(m)
@@ -377,16 +444,17 @@ func (m *ApbGetMVRegResp) Reset()         { *m = ApbGetMVRegResp{} }
 func (m *ApbGetMVRegResp) String() string { return proto.CompactTextString(m) }
 func (*ApbGetMVRegResp) ProtoMessage()    {}
 func (*ApbGetMVRegResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{6}
+	return fileDescriptor_97d48018c08bbbb3, []int{7}
 }
+
 func (m *ApbGetMVRegResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbGetMVRegResp.Unmarshal(m, b)
 }
 func (m *ApbGetMVRegResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbGetMVRegResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbGetMVRegResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbGetMVRegResp.Merge(dst, src)
+func (m *ApbGetMVRegResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbGetMVRegResp.Merge(m, src)
 }
 func (m *ApbGetMVRegResp) XXX_Size() int {
 	return xxx_messageInfo_ApbGetMVRegResp.Size(m)
@@ -416,16 +484,17 @@ func (m *ApbMapKey) Reset()         { *m = ApbMapKey{} }
 func (m *ApbMapKey) String() string { return proto.CompactTextString(m) }
 func (*ApbMapKey) ProtoMessage()    {}
 func (*ApbMapKey) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{7}
+	return fileDescriptor_97d48018c08bbbb3, []int{8}
 }
+
 func (m *ApbMapKey) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbMapKey.Unmarshal(m, b)
 }
 func (m *ApbMapKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbMapKey.Marshal(b, m, deterministic)
 }
-func (dst *ApbMapKey) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbMapKey.Merge(dst, src)
+func (m *ApbMapKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbMapKey.Merge(m, src)
 }
 func (m *ApbMapKey) XXX_Size() int {
 	return xxx_messageInfo_ApbMapKey.Size(m)
@@ -462,16 +531,17 @@ func (m *ApbMapUpdate) Reset()         { *m = ApbMapUpdate{} }
 func (m *ApbMapUpdate) String() string { return proto.CompactTextString(m) }
 func (*ApbMapUpdate) ProtoMessage()    {}
 func (*ApbMapUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{8}
+	return fileDescriptor_97d48018c08bbbb3, []int{9}
 }
+
 func (m *ApbMapUpdate) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbMapUpdate.Unmarshal(m, b)
 }
 func (m *ApbMapUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbMapUpdate.Marshal(b, m, deterministic)
 }
-func (dst *ApbMapUpdate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbMapUpdate.Merge(dst, src)
+func (m *ApbMapUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbMapUpdate.Merge(m, src)
 }
 func (m *ApbMapUpdate) XXX_Size() int {
 	return xxx_messageInfo_ApbMapUpdate.Size(m)
@@ -508,16 +578,17 @@ func (m *ApbMapNestedUpdate) Reset()         { *m = ApbMapNestedUpdate{} }
 func (m *ApbMapNestedUpdate) String() string { return proto.CompactTextString(m) }
 func (*ApbMapNestedUpdate) ProtoMessage()    {}
 func (*ApbMapNestedUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{9}
+	return fileDescriptor_97d48018c08bbbb3, []int{10}
 }
+
 func (m *ApbMapNestedUpdate) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbMapNestedUpdate.Unmarshal(m, b)
 }
 func (m *ApbMapNestedUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbMapNestedUpdate.Marshal(b, m, deterministic)
 }
-func (dst *ApbMapNestedUpdate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbMapNestedUpdate.Merge(dst, src)
+func (m *ApbMapNestedUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbMapNestedUpdate.Merge(m, src)
 }
 func (m *ApbMapNestedUpdate) XXX_Size() int {
 	return xxx_messageInfo_ApbMapNestedUpdate.Size(m)
@@ -553,16 +624,17 @@ func (m *ApbGetMapResp) Reset()         { *m = ApbGetMapResp{} }
 func (m *ApbGetMapResp) String() string { return proto.CompactTextString(m) }
 func (*ApbGetMapResp) ProtoMessage()    {}
 func (*ApbGetMapResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{10}
+	return fileDescriptor_97d48018c08bbbb3, []int{11}
 }
+
 func (m *ApbGetMapResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbGetMapResp.Unmarshal(m, b)
 }
 func (m *ApbGetMapResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbGetMapResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbGetMapResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbGetMapResp.Merge(dst, src)
+func (m *ApbGetMapResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbGetMapResp.Merge(m, src)
 }
 func (m *ApbGetMapResp) XXX_Size() int {
 	return xxx_messageInfo_ApbGetMapResp.Size(m)
@@ -592,16 +664,17 @@ func (m *ApbMapEntry) Reset()         { *m = ApbMapEntry{} }
 func (m *ApbMapEntry) String() string { return proto.CompactTextString(m) }
 func (*ApbMapEntry) ProtoMessage()    {}
 func (*ApbMapEntry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{11}
+	return fileDescriptor_97d48018c08bbbb3, []int{12}
 }
+
 func (m *ApbMapEntry) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbMapEntry.Unmarshal(m, b)
 }
 func (m *ApbMapEntry) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbMapEntry.Marshal(b, m, deterministic)
 }
-func (dst *ApbMapEntry) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbMapEntry.Merge(dst, src)
+func (m *ApbMapEntry) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbMapEntry.Merge(m, src)
 }
 func (m *ApbMapEntry) XXX_Size() int {
 	return xxx_messageInfo_ApbMapEntry.Size(m)
@@ -637,16 +710,17 @@ func (m *ApbFlagUpdate) Reset()         { *m = ApbFlagUpdate{} }
 func (m *ApbFlagUpdate) String() string { return proto.CompactTextString(m) }
 func (*ApbFlagUpdate) ProtoMessage()    {}
 func (*ApbFlagUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{12}
+	return fileDescriptor_97d48018c08bbbb3, []int{13}
 }
+
 func (m *ApbFlagUpdate) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbFlagUpdate.Unmarshal(m, b)
 }
 func (m *ApbFlagUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbFlagUpdate.Marshal(b, m, deterministic)
 }
-func (dst *ApbFlagUpdate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbFlagUpdate.Merge(dst, src)
+func (m *ApbFlagUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbFlagUpdate.Merge(m, src)
 }
 func (m *ApbFlagUpdate) XXX_Size() int {
 	return xxx_messageInfo_ApbFlagUpdate.Size(m)
@@ -675,16 +749,17 @@ func (m *ApbGetFlagResp) Reset()         { *m = ApbGetFlagResp{} }
 func (m *ApbGetFlagResp) String() string { return proto.CompactTextString(m) }
 func (*ApbGetFlagResp) ProtoMessage()    {}
 func (*ApbGetFlagResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{13}
+	return fileDescriptor_97d48018c08bbbb3, []int{14}
 }
+
 func (m *ApbGetFlagResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbGetFlagResp.Unmarshal(m, b)
 }
 func (m *ApbGetFlagResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbGetFlagResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbGetFlagResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbGetFlagResp.Merge(dst, src)
+func (m *ApbGetFlagResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbGetFlagResp.Merge(m, src)
 }
 func (m *ApbGetFlagResp) XXX_Size() int {
 	return xxx_messageInfo_ApbGetFlagResp.Size(m)
@@ -713,16 +788,17 @@ func (m *ApbCrdtReset) Reset()         { *m = ApbCrdtReset{} }
 func (m *ApbCrdtReset) String() string { return proto.CompactTextString(m) }
 func (*ApbCrdtReset) ProtoMessage()    {}
 func (*ApbCrdtReset) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{14}
+	return fileDescriptor_97d48018c08bbbb3, []int{15}
 }
+
 func (m *ApbCrdtReset) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbCrdtReset.Unmarshal(m, b)
 }
 func (m *ApbCrdtReset) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbCrdtReset.Marshal(b, m, deterministic)
 }
-func (dst *ApbCrdtReset) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbCrdtReset.Merge(dst, src)
+func (m *ApbCrdtReset) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbCrdtReset.Merge(m, src)
 }
 func (m *ApbCrdtReset) XXX_Size() int {
 	return xxx_messageInfo_ApbCrdtReset.Size(m)
@@ -746,16 +822,17 @@ func (m *ApbOperationResp) Reset()         { *m = ApbOperationResp{} }
 func (m *ApbOperationResp) String() string { return proto.CompactTextString(m) }
 func (*ApbOperationResp) ProtoMessage()    {}
 func (*ApbOperationResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{15}
+	return fileDescriptor_97d48018c08bbbb3, []int{16}
 }
+
 func (m *ApbOperationResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbOperationResp.Unmarshal(m, b)
 }
 func (m *ApbOperationResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbOperationResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbOperationResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbOperationResp.Merge(dst, src)
+func (m *ApbOperationResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbOperationResp.Merge(m, src)
 }
 func (m *ApbOperationResp) XXX_Size() int {
 	return xxx_messageInfo_ApbOperationResp.Size(m)
@@ -784,6 +861,8 @@ func (m *ApbOperationResp) GetErrorcode() uint32 {
 type ApbTxnProperties struct {
 	ReadWrite            *uint32  `protobuf:"varint,1,opt,name=read_write,json=readWrite" json:"read_write,omitempty"`
 	RedBlue              *uint32  `protobuf:"varint,2,opt,name=red_blue,json=redBlue" json:"red_blue,omitempty"`
+	SharedLocks          [][]byte `protobuf:"bytes,3,rep,name=shared_locks,json=sharedLocks" json:"shared_locks,omitempty"`
+	ExclusiveLocks       [][]byte `protobuf:"bytes,4,rep,name=exclusive_locks,json=exclusiveLocks" json:"exclusive_locks,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -793,16 +872,17 @@ func (m *ApbTxnProperties) Reset()         { *m = ApbTxnProperties{} }
 func (m *ApbTxnProperties) String() string { return proto.CompactTextString(m) }
 func (*ApbTxnProperties) ProtoMessage()    {}
 func (*ApbTxnProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{16}
+	return fileDescriptor_97d48018c08bbbb3, []int{17}
 }
+
 func (m *ApbTxnProperties) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbTxnProperties.Unmarshal(m, b)
 }
 func (m *ApbTxnProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbTxnProperties.Marshal(b, m, deterministic)
 }
-func (dst *ApbTxnProperties) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbTxnProperties.Merge(dst, src)
+func (m *ApbTxnProperties) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbTxnProperties.Merge(m, src)
 }
 func (m *ApbTxnProperties) XXX_Size() int {
 	return xxx_messageInfo_ApbTxnProperties.Size(m)
@@ -827,6 +907,20 @@ func (m *ApbTxnProperties) GetRedBlue() uint32 {
 	return 0
 }
 
+func (m *ApbTxnProperties) GetSharedLocks() [][]byte {
+	if m != nil {
+		return m.SharedLocks
+	}
+	return nil
+}
+
+func (m *ApbTxnProperties) GetExclusiveLocks() [][]byte {
+	if m != nil {
+		return m.ExclusiveLocks
+	}
+	return nil
+}
+
 // Object (Key) representation
 type ApbBoundObject struct {
 	Key                  []byte    `protobuf:"bytes,1,req,name=key" json:"key,omitempty"`
@@ -841,16 +935,17 @@ func (m *ApbBoundObject) Reset()         { *m = ApbBoundObject{} }
 func (m *ApbBoundObject) String() string { return proto.CompactTextString(m) }
 func (*ApbBoundObject) ProtoMessage()    {}
 func (*ApbBoundObject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{17}
+	return fileDescriptor_97d48018c08bbbb3, []int{18}
 }
+
 func (m *ApbBoundObject) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbBoundObject.Unmarshal(m, b)
 }
 func (m *ApbBoundObject) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbBoundObject.Marshal(b, m, deterministic)
 }
-func (dst *ApbBoundObject) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbBoundObject.Merge(dst, src)
+func (m *ApbBoundObject) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbBoundObject.Merge(m, src)
 }
 func (m *ApbBoundObject) XXX_Size() int {
 	return xxx_messageInfo_ApbBoundObject.Size(m)
@@ -895,16 +990,17 @@ func (m *ApbReadObjects) Reset()         { *m = ApbReadObjects{} }
 func (m *ApbReadObjects) String() string { return proto.CompactTextString(m) }
 func (*ApbReadObjects) ProtoMessage()    {}
 func (*ApbReadObjects) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{18}
+	return fileDescriptor_97d48018c08bbbb3, []int{19}
 }
+
 func (m *ApbReadObjects) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbReadObjects.Unmarshal(m, b)
 }
 func (m *ApbReadObjects) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbReadObjects.Marshal(b, m, deterministic)
 }
-func (dst *ApbReadObjects) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbReadObjects.Merge(dst, src)
+func (m *ApbReadObjects) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbReadObjects.Merge(m, src)
 }
 func (m *ApbReadObjects) XXX_Size() int {
 	return xxx_messageInfo_ApbReadObjects.Size(m)
@@ -942,16 +1038,17 @@ func (m *ApbUpdateOp) Reset()         { *m = ApbUpdateOp{} }
 func (m *ApbUpdateOp) String() string { return proto.CompactTextString(m) }
 func (*ApbUpdateOp) ProtoMessage()    {}
 func (*ApbUpdateOp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{19}
+	return fileDescriptor_97d48018c08bbbb3, []int{20}
 }
+
 func (m *ApbUpdateOp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbUpdateOp.Unmarshal(m, b)
 }
 func (m *ApbUpdateOp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbUpdateOp.Marshal(b, m, deterministic)
 }
-func (dst *ApbUpdateOp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbUpdateOp.Merge(dst, src)
+func (m *ApbUpdateOp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbUpdateOp.Merge(m, src)
 }
 func (m *ApbUpdateOp) XXX_Size() int {
 	return xxx_messageInfo_ApbUpdateOp.Size(m)
@@ -992,16 +1089,17 @@ func (m *ApbUpdateOperation) Reset()         { *m = ApbUpdateOperation{} }
 func (m *ApbUpdateOperation) String() string { return proto.CompactTextString(m) }
 func (*ApbUpdateOperation) ProtoMessage()    {}
 func (*ApbUpdateOperation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{20}
+	return fileDescriptor_97d48018c08bbbb3, []int{21}
 }
+
 func (m *ApbUpdateOperation) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbUpdateOperation.Unmarshal(m, b)
 }
 func (m *ApbUpdateOperation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbUpdateOperation.Marshal(b, m, deterministic)
 }
-func (dst *ApbUpdateOperation) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbUpdateOperation.Merge(dst, src)
+func (m *ApbUpdateOperation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbUpdateOperation.Merge(m, src)
 }
 func (m *ApbUpdateOperation) XXX_Size() int {
 	return xxx_messageInfo_ApbUpdateOperation.Size(m)
@@ -1067,16 +1165,17 @@ func (m *ApbUpdateObjects) Reset()         { *m = ApbUpdateObjects{} }
 func (m *ApbUpdateObjects) String() string { return proto.CompactTextString(m) }
 func (*ApbUpdateObjects) ProtoMessage()    {}
 func (*ApbUpdateObjects) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{21}
+	return fileDescriptor_97d48018c08bbbb3, []int{22}
 }
+
 func (m *ApbUpdateObjects) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbUpdateObjects.Unmarshal(m, b)
 }
 func (m *ApbUpdateObjects) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbUpdateObjects.Marshal(b, m, deterministic)
 }
-func (dst *ApbUpdateObjects) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbUpdateObjects.Merge(dst, src)
+func (m *ApbUpdateObjects) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbUpdateObjects.Merge(m, src)
 }
 func (m *ApbUpdateObjects) XXX_Size() int {
 	return xxx_messageInfo_ApbUpdateObjects.Size(m)
@@ -1114,16 +1213,17 @@ func (m *ApbStartTransaction) Reset()         { *m = ApbStartTransaction{} }
 func (m *ApbStartTransaction) String() string { return proto.CompactTextString(m) }
 func (*ApbStartTransaction) ProtoMessage()    {}
 func (*ApbStartTransaction) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{22}
+	return fileDescriptor_97d48018c08bbbb3, []int{23}
 }
+
 func (m *ApbStartTransaction) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbStartTransaction.Unmarshal(m, b)
 }
 func (m *ApbStartTransaction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbStartTransaction.Marshal(b, m, deterministic)
 }
-func (dst *ApbStartTransaction) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbStartTransaction.Merge(dst, src)
+func (m *ApbStartTransaction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbStartTransaction.Merge(m, src)
 }
 func (m *ApbStartTransaction) XXX_Size() int {
 	return xxx_messageInfo_ApbStartTransaction.Size(m)
@@ -1160,16 +1260,17 @@ func (m *ApbAbortTransaction) Reset()         { *m = ApbAbortTransaction{} }
 func (m *ApbAbortTransaction) String() string { return proto.CompactTextString(m) }
 func (*ApbAbortTransaction) ProtoMessage()    {}
 func (*ApbAbortTransaction) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{23}
+	return fileDescriptor_97d48018c08bbbb3, []int{24}
 }
+
 func (m *ApbAbortTransaction) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbAbortTransaction.Unmarshal(m, b)
 }
 func (m *ApbAbortTransaction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbAbortTransaction.Marshal(b, m, deterministic)
 }
-func (dst *ApbAbortTransaction) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbAbortTransaction.Merge(dst, src)
+func (m *ApbAbortTransaction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbAbortTransaction.Merge(m, src)
 }
 func (m *ApbAbortTransaction) XXX_Size() int {
 	return xxx_messageInfo_ApbAbortTransaction.Size(m)
@@ -1199,16 +1300,17 @@ func (m *ApbCommitTransaction) Reset()         { *m = ApbCommitTransaction{} }
 func (m *ApbCommitTransaction) String() string { return proto.CompactTextString(m) }
 func (*ApbCommitTransaction) ProtoMessage()    {}
 func (*ApbCommitTransaction) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{24}
+	return fileDescriptor_97d48018c08bbbb3, []int{25}
 }
+
 func (m *ApbCommitTransaction) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbCommitTransaction.Unmarshal(m, b)
 }
 func (m *ApbCommitTransaction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbCommitTransaction.Marshal(b, m, deterministic)
 }
-func (dst *ApbCommitTransaction) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbCommitTransaction.Merge(dst, src)
+func (m *ApbCommitTransaction) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbCommitTransaction.Merge(m, src)
 }
 func (m *ApbCommitTransaction) XXX_Size() int {
 	return xxx_messageInfo_ApbCommitTransaction.Size(m)
@@ -1238,16 +1340,17 @@ func (m *ApbStaticUpdateObjects) Reset()         { *m = ApbStaticUpdateObjects{}
 func (m *ApbStaticUpdateObjects) String() string { return proto.CompactTextString(m) }
 func (*ApbStaticUpdateObjects) ProtoMessage()    {}
 func (*ApbStaticUpdateObjects) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{25}
+	return fileDescriptor_97d48018c08bbbb3, []int{26}
 }
+
 func (m *ApbStaticUpdateObjects) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbStaticUpdateObjects.Unmarshal(m, b)
 }
 func (m *ApbStaticUpdateObjects) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbStaticUpdateObjects.Marshal(b, m, deterministic)
 }
-func (dst *ApbStaticUpdateObjects) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbStaticUpdateObjects.Merge(dst, src)
+func (m *ApbStaticUpdateObjects) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbStaticUpdateObjects.Merge(m, src)
 }
 func (m *ApbStaticUpdateObjects) XXX_Size() int {
 	return xxx_messageInfo_ApbStaticUpdateObjects.Size(m)
@@ -1284,16 +1387,17 @@ func (m *ApbStaticReadObjects) Reset()         { *m = ApbStaticReadObjects{} }
 func (m *ApbStaticReadObjects) String() string { return proto.CompactTextString(m) }
 func (*ApbStaticReadObjects) ProtoMessage()    {}
 func (*ApbStaticReadObjects) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{26}
+	return fileDescriptor_97d48018c08bbbb3, []int{27}
 }
+
 func (m *ApbStaticReadObjects) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbStaticReadObjects.Unmarshal(m, b)
 }
 func (m *ApbStaticReadObjects) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbStaticReadObjects.Marshal(b, m, deterministic)
 }
-func (dst *ApbStaticReadObjects) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbStaticReadObjects.Merge(dst, src)
+func (m *ApbStaticReadObjects) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbStaticReadObjects.Merge(m, src)
 }
 func (m *ApbStaticReadObjects) XXX_Size() int {
 	return xxx_messageInfo_ApbStaticReadObjects.Size(m)
@@ -1318,7 +1422,7 @@ func (m *ApbStaticReadObjects) GetObjects() []*ApbBoundObject {
 	return nil
 }
 
-// Start transaction response
+//Start transaction response
 type ApbStartTransactionResp struct {
 	Success               *bool    `protobuf:"varint,1,req,name=success" json:"success,omitempty"`
 	TransactionDescriptor []byte   `protobuf:"bytes,2,opt,name=transaction_descriptor,json=transactionDescriptor" json:"transaction_descriptor,omitempty"`
@@ -1332,16 +1436,17 @@ func (m *ApbStartTransactionResp) Reset()         { *m = ApbStartTransactionResp
 func (m *ApbStartTransactionResp) String() string { return proto.CompactTextString(m) }
 func (*ApbStartTransactionResp) ProtoMessage()    {}
 func (*ApbStartTransactionResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{27}
+	return fileDescriptor_97d48018c08bbbb3, []int{28}
 }
+
 func (m *ApbStartTransactionResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbStartTransactionResp.Unmarshal(m, b)
 }
 func (m *ApbStartTransactionResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbStartTransactionResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbStartTransactionResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbStartTransactionResp.Merge(dst, src)
+func (m *ApbStartTransactionResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbStartTransactionResp.Merge(m, src)
 }
 func (m *ApbStartTransactionResp) XXX_Size() int {
 	return xxx_messageInfo_ApbStartTransactionResp.Size(m)
@@ -1373,7 +1478,7 @@ func (m *ApbStartTransactionResp) GetErrorcode() uint32 {
 	return 0
 }
 
-// Read Objects Response
+//Read Objects Response
 type ApbReadObjectResp struct {
 	// one of the following:
 	Counter              *ApbGetCounterResp `protobuf:"bytes,1,opt,name=counter" json:"counter,omitempty"`
@@ -1391,16 +1496,17 @@ func (m *ApbReadObjectResp) Reset()         { *m = ApbReadObjectResp{} }
 func (m *ApbReadObjectResp) String() string { return proto.CompactTextString(m) }
 func (*ApbReadObjectResp) ProtoMessage()    {}
 func (*ApbReadObjectResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{28}
+	return fileDescriptor_97d48018c08bbbb3, []int{29}
 }
+
 func (m *ApbReadObjectResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbReadObjectResp.Unmarshal(m, b)
 }
 func (m *ApbReadObjectResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbReadObjectResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbReadObjectResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbReadObjectResp.Merge(dst, src)
+func (m *ApbReadObjectResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbReadObjectResp.Merge(m, src)
 }
 func (m *ApbReadObjectResp) XXX_Size() int {
 	return xxx_messageInfo_ApbReadObjectResp.Size(m)
@@ -1466,16 +1572,17 @@ func (m *ApbReadObjectsResp) Reset()         { *m = ApbReadObjectsResp{} }
 func (m *ApbReadObjectsResp) String() string { return proto.CompactTextString(m) }
 func (*ApbReadObjectsResp) ProtoMessage()    {}
 func (*ApbReadObjectsResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{29}
+	return fileDescriptor_97d48018c08bbbb3, []int{30}
 }
+
 func (m *ApbReadObjectsResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbReadObjectsResp.Unmarshal(m, b)
 }
 func (m *ApbReadObjectsResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbReadObjectsResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbReadObjectsResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbReadObjectsResp.Merge(dst, src)
+func (m *ApbReadObjectsResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbReadObjectsResp.Merge(m, src)
 }
 func (m *ApbReadObjectsResp) XXX_Size() int {
 	return xxx_messageInfo_ApbReadObjectsResp.Size(m)
@@ -1521,16 +1628,17 @@ func (m *ApbCommitResp) Reset()         { *m = ApbCommitResp{} }
 func (m *ApbCommitResp) String() string { return proto.CompactTextString(m) }
 func (*ApbCommitResp) ProtoMessage()    {}
 func (*ApbCommitResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{30}
+	return fileDescriptor_97d48018c08bbbb3, []int{31}
 }
+
 func (m *ApbCommitResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbCommitResp.Unmarshal(m, b)
 }
 func (m *ApbCommitResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbCommitResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbCommitResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbCommitResp.Merge(dst, src)
+func (m *ApbCommitResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbCommitResp.Merge(m, src)
 }
 func (m *ApbCommitResp) XXX_Size() int {
 	return xxx_messageInfo_ApbCommitResp.Size(m)
@@ -1574,16 +1682,17 @@ func (m *ApbStaticReadObjectsResp) Reset()         { *m = ApbStaticReadObjectsRe
 func (m *ApbStaticReadObjectsResp) String() string { return proto.CompactTextString(m) }
 func (*ApbStaticReadObjectsResp) ProtoMessage()    {}
 func (*ApbStaticReadObjectsResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_antidote_ec7f698c38dc7b97, []int{31}
+	return fileDescriptor_97d48018c08bbbb3, []int{32}
 }
+
 func (m *ApbStaticReadObjectsResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ApbStaticReadObjectsResp.Unmarshal(m, b)
 }
 func (m *ApbStaticReadObjectsResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ApbStaticReadObjectsResp.Marshal(b, m, deterministic)
 }
-func (dst *ApbStaticReadObjectsResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ApbStaticReadObjectsResp.Merge(dst, src)
+func (m *ApbStaticReadObjectsResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbStaticReadObjectsResp.Merge(m, src)
 }
 func (m *ApbStaticReadObjectsResp) XXX_Size() int {
 	return xxx_messageInfo_ApbStaticReadObjectsResp.Size(m)
@@ -1608,7 +1717,275 @@ func (m *ApbStaticReadObjectsResp) GetCommittime() *ApbCommitResp {
 	return nil
 }
 
+// Create a DC with multiple nodes
+type ApbCreateDC struct {
+	// name of antidote nodes of the form 'antidote@hostname' or 'antidote@ip'
+	Nodes                []string `protobuf:"bytes,1,rep,name=nodes" json:"nodes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ApbCreateDC) Reset()         { *m = ApbCreateDC{} }
+func (m *ApbCreateDC) String() string { return proto.CompactTextString(m) }
+func (*ApbCreateDC) ProtoMessage()    {}
+func (*ApbCreateDC) Descriptor() ([]byte, []int) {
+	return fileDescriptor_97d48018c08bbbb3, []int{33}
+}
+
+func (m *ApbCreateDC) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ApbCreateDC.Unmarshal(m, b)
+}
+func (m *ApbCreateDC) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ApbCreateDC.Marshal(b, m, deterministic)
+}
+func (m *ApbCreateDC) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbCreateDC.Merge(m, src)
+}
+func (m *ApbCreateDC) XXX_Size() int {
+	return xxx_messageInfo_ApbCreateDC.Size(m)
+}
+func (m *ApbCreateDC) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApbCreateDC.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApbCreateDC proto.InternalMessageInfo
+
+func (m *ApbCreateDC) GetNodes() []string {
+	if m != nil {
+		return m.Nodes
+	}
+	return nil
+}
+
+type ApbCreateDCResp struct {
+	Success              *bool    `protobuf:"varint,1,req,name=success" json:"success,omitempty"`
+	Errorcode            *uint32  `protobuf:"varint,2,opt,name=errorcode" json:"errorcode,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ApbCreateDCResp) Reset()         { *m = ApbCreateDCResp{} }
+func (m *ApbCreateDCResp) String() string { return proto.CompactTextString(m) }
+func (*ApbCreateDCResp) ProtoMessage()    {}
+func (*ApbCreateDCResp) Descriptor() ([]byte, []int) {
+	return fileDescriptor_97d48018c08bbbb3, []int{34}
+}
+
+func (m *ApbCreateDCResp) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ApbCreateDCResp.Unmarshal(m, b)
+}
+func (m *ApbCreateDCResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ApbCreateDCResp.Marshal(b, m, deterministic)
+}
+func (m *ApbCreateDCResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbCreateDCResp.Merge(m, src)
+}
+func (m *ApbCreateDCResp) XXX_Size() int {
+	return xxx_messageInfo_ApbCreateDCResp.Size(m)
+}
+func (m *ApbCreateDCResp) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApbCreateDCResp.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApbCreateDCResp proto.InternalMessageInfo
+
+func (m *ApbCreateDCResp) GetSuccess() bool {
+	if m != nil && m.Success != nil {
+		return *m.Success
+	}
+	return false
+}
+
+func (m *ApbCreateDCResp) GetErrorcode() uint32 {
+	if m != nil && m.Errorcode != nil {
+		return *m.Errorcode
+	}
+	return 0
+}
+
+// Get a connection descriptor of the DC to be given to other DCs.
+type ApbGetConnectionDescriptor struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ApbGetConnectionDescriptor) Reset()         { *m = ApbGetConnectionDescriptor{} }
+func (m *ApbGetConnectionDescriptor) String() string { return proto.CompactTextString(m) }
+func (*ApbGetConnectionDescriptor) ProtoMessage()    {}
+func (*ApbGetConnectionDescriptor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_97d48018c08bbbb3, []int{35}
+}
+
+func (m *ApbGetConnectionDescriptor) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ApbGetConnectionDescriptor.Unmarshal(m, b)
+}
+func (m *ApbGetConnectionDescriptor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ApbGetConnectionDescriptor.Marshal(b, m, deterministic)
+}
+func (m *ApbGetConnectionDescriptor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbGetConnectionDescriptor.Merge(m, src)
+}
+func (m *ApbGetConnectionDescriptor) XXX_Size() int {
+	return xxx_messageInfo_ApbGetConnectionDescriptor.Size(m)
+}
+func (m *ApbGetConnectionDescriptor) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApbGetConnectionDescriptor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApbGetConnectionDescriptor proto.InternalMessageInfo
+
+type ApbGetConnectionDescriptorResp struct {
+	Success *bool `protobuf:"varint,1,req,name=success" json:"success,omitempty"`
+	//structure of descriptor is internal to antidote.
+	Descriptor_          []byte   `protobuf:"bytes,2,opt,name=descriptor" json:"descriptor,omitempty"`
+	Errorcode            *uint32  `protobuf:"varint,3,opt,name=errorcode" json:"errorcode,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ApbGetConnectionDescriptorResp) Reset()         { *m = ApbGetConnectionDescriptorResp{} }
+func (m *ApbGetConnectionDescriptorResp) String() string { return proto.CompactTextString(m) }
+func (*ApbGetConnectionDescriptorResp) ProtoMessage()    {}
+func (*ApbGetConnectionDescriptorResp) Descriptor() ([]byte, []int) {
+	return fileDescriptor_97d48018c08bbbb3, []int{36}
+}
+
+func (m *ApbGetConnectionDescriptorResp) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ApbGetConnectionDescriptorResp.Unmarshal(m, b)
+}
+func (m *ApbGetConnectionDescriptorResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ApbGetConnectionDescriptorResp.Marshal(b, m, deterministic)
+}
+func (m *ApbGetConnectionDescriptorResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbGetConnectionDescriptorResp.Merge(m, src)
+}
+func (m *ApbGetConnectionDescriptorResp) XXX_Size() int {
+	return xxx_messageInfo_ApbGetConnectionDescriptorResp.Size(m)
+}
+func (m *ApbGetConnectionDescriptorResp) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApbGetConnectionDescriptorResp.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApbGetConnectionDescriptorResp proto.InternalMessageInfo
+
+func (m *ApbGetConnectionDescriptorResp) GetSuccess() bool {
+	if m != nil && m.Success != nil {
+		return *m.Success
+	}
+	return false
+}
+
+func (m *ApbGetConnectionDescriptorResp) GetDescriptor_() []byte {
+	if m != nil {
+		return m.Descriptor_
+	}
+	return nil
+}
+
+func (m *ApbGetConnectionDescriptorResp) GetErrorcode() uint32 {
+	if m != nil && m.Errorcode != nil {
+		return *m.Errorcode
+	}
+	return 0
+}
+
+// Connect DC with each other to start replication.
+// This message must be send to all DCs.
+type ApbConnectToDCs struct {
+	// descriptors is a list of connection information of all DCs obtained from ApbGetConnectionDescriptorResp.descriptor
+	Descriptors          [][]byte `protobuf:"bytes,1,rep,name=descriptors" json:"descriptors,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ApbConnectToDCs) Reset()         { *m = ApbConnectToDCs{} }
+func (m *ApbConnectToDCs) String() string { return proto.CompactTextString(m) }
+func (*ApbConnectToDCs) ProtoMessage()    {}
+func (*ApbConnectToDCs) Descriptor() ([]byte, []int) {
+	return fileDescriptor_97d48018c08bbbb3, []int{37}
+}
+
+func (m *ApbConnectToDCs) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ApbConnectToDCs.Unmarshal(m, b)
+}
+func (m *ApbConnectToDCs) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ApbConnectToDCs.Marshal(b, m, deterministic)
+}
+func (m *ApbConnectToDCs) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbConnectToDCs.Merge(m, src)
+}
+func (m *ApbConnectToDCs) XXX_Size() int {
+	return xxx_messageInfo_ApbConnectToDCs.Size(m)
+}
+func (m *ApbConnectToDCs) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApbConnectToDCs.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApbConnectToDCs proto.InternalMessageInfo
+
+func (m *ApbConnectToDCs) GetDescriptors() [][]byte {
+	if m != nil {
+		return m.Descriptors
+	}
+	return nil
+}
+
+type ApbConnectToDCsResp struct {
+	Success              *bool    `protobuf:"varint,1,req,name=success" json:"success,omitempty"`
+	Errorcode            *uint32  `protobuf:"varint,2,opt,name=errorcode" json:"errorcode,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ApbConnectToDCsResp) Reset()         { *m = ApbConnectToDCsResp{} }
+func (m *ApbConnectToDCsResp) String() string { return proto.CompactTextString(m) }
+func (*ApbConnectToDCsResp) ProtoMessage()    {}
+func (*ApbConnectToDCsResp) Descriptor() ([]byte, []int) {
+	return fileDescriptor_97d48018c08bbbb3, []int{38}
+}
+
+func (m *ApbConnectToDCsResp) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ApbConnectToDCsResp.Unmarshal(m, b)
+}
+func (m *ApbConnectToDCsResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ApbConnectToDCsResp.Marshal(b, m, deterministic)
+}
+func (m *ApbConnectToDCsResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApbConnectToDCsResp.Merge(m, src)
+}
+func (m *ApbConnectToDCsResp) XXX_Size() int {
+	return xxx_messageInfo_ApbConnectToDCsResp.Size(m)
+}
+func (m *ApbConnectToDCsResp) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApbConnectToDCsResp.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApbConnectToDCsResp proto.InternalMessageInfo
+
+func (m *ApbConnectToDCsResp) GetSuccess() bool {
+	if m != nil && m.Success != nil {
+		return *m.Success
+	}
+	return false
+}
+
+func (m *ApbConnectToDCsResp) GetErrorcode() uint32 {
+	if m != nil && m.Errorcode != nil {
+		return *m.Errorcode
+	}
+	return 0
+}
+
 func init() {
+	proto.RegisterEnum("CRDTType", CRDTType_name, CRDTType_value)
+	proto.RegisterEnum("ApbSetUpdate_SetOpType", ApbSetUpdate_SetOpType_name, ApbSetUpdate_SetOpType_value)
+	proto.RegisterType((*ApbErrorResp)(nil), "ApbErrorResp")
 	proto.RegisterType((*ApbCounterUpdate)(nil), "ApbCounterUpdate")
 	proto.RegisterType((*ApbGetCounterResp)(nil), "ApbGetCounterResp")
 	proto.RegisterType((*ApbSetUpdate)(nil), "ApbSetUpdate")
@@ -1641,87 +2018,101 @@ func init() {
 	proto.RegisterType((*ApbReadObjectsResp)(nil), "ApbReadObjectsResp")
 	proto.RegisterType((*ApbCommitResp)(nil), "ApbCommitResp")
 	proto.RegisterType((*ApbStaticReadObjectsResp)(nil), "ApbStaticReadObjectsResp")
-	proto.RegisterEnum("CRDTType", CRDTType_name, CRDTType_value)
-	proto.RegisterEnum("ApbSetUpdate_SetOpType", ApbSetUpdate_SetOpType_name, ApbSetUpdate_SetOpType_value)
+	proto.RegisterType((*ApbCreateDC)(nil), "ApbCreateDC")
+	proto.RegisterType((*ApbCreateDCResp)(nil), "ApbCreateDCResp")
+	proto.RegisterType((*ApbGetConnectionDescriptor)(nil), "ApbGetConnectionDescriptor")
+	proto.RegisterType((*ApbGetConnectionDescriptorResp)(nil), "ApbGetConnectionDescriptorResp")
+	proto.RegisterType((*ApbConnectToDCs)(nil), "ApbConnectToDCs")
+	proto.RegisterType((*ApbConnectToDCsResp)(nil), "ApbConnectToDCsResp")
 }
 
-func init() { proto.RegisterFile("antidote.proto", fileDescriptor_antidote_ec7f698c38dc7b97) }
+func init() { proto.RegisterFile("antidote.proto", fileDescriptor_97d48018c08bbbb3) }
 
-var fileDescriptor_antidote_ec7f698c38dc7b97 = []byte{
-	// 1190 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0x5b, 0x4f, 0x1b, 0x47,
-	0x14, 0xd6, 0xfa, 0x8a, 0x8f, 0x8d, 0x59, 0x26, 0x14, 0x5c, 0x29, 0x6d, 0xd1, 0x26, 0xa5, 0xd0,
-	0x92, 0x8d, 0xa0, 0x4a, 0xfb, 0xd4, 0x07, 0x03, 0x06, 0xa9, 0xc1, 0x31, 0x1a, 0x0c, 0x96, 0xf2,
-	0x62, 0xed, 0x65, 0x20, 0x5b, 0x58, 0xef, 0x74, 0x76, 0x4c, 0xe3, 0xaa, 0x8f, 0xad, 0xd4, 0xfe,
-	0xdf, 0xfe, 0x80, 0x6a, 0x2e, 0x7b, 0x33, 0x0e, 0xa8, 0x51, 0xde, 0x66, 0xcf, 0xf9, 0xe6, 0x9c,
-	0x33, 0xdf, 0xb9, 0xcc, 0x2c, 0xb4, 0x9d, 0x09, 0x0f, 0xfc, 0x88, 0x13, 0x9b, 0xb2, 0x88, 0x47,
-	0xd6, 0x73, 0x30, 0xbb, 0xd4, 0x3d, 0x8c, 0xa6, 0x13, 0x4e, 0xd8, 0x05, 0xf5, 0x1d, 0x4e, 0x90,
-	0x09, 0xe5, 0x60, 0xe2, 0x75, 0x8c, 0x4d, 0x63, 0x1b, 0x61, 0xb1, 0xb4, 0x76, 0x60, 0xb5, 0x4b,
-	0xdd, 0x13, 0xc2, 0x35, 0x10, 0x93, 0x98, 0xa2, 0x35, 0xa8, 0xde, 0x39, 0xb7, 0x53, 0xd2, 0x31,
-	0x36, 0x4b, 0xdb, 0xab, 0x58, 0x7d, 0x58, 0xff, 0x18, 0xd0, 0xea, 0x52, 0xf7, 0x9c, 0x70, 0x6d,
-	0xed, 0x25, 0xd4, 0x22, 0xca, 0x67, 0x54, 0xe1, 0xda, 0xfb, 0x1b, 0x76, 0x5e, 0x6d, 0x9f, 0x13,
-	0x3e, 0xa0, 0xc3, 0x19, 0x25, 0x58, 0xc3, 0x10, 0x82, 0x8a, 0xe3, 0xfb, 0x71, 0xa7, 0xb4, 0x59,
-	0xde, 0x6e, 0x61, 0xb9, 0x16, 0x32, 0x46, 0xc2, 0xb8, 0x53, 0x56, 0x32, 0xb1, 0xb6, 0x36, 0xa1,
-	0x91, 0x6e, 0x46, 0x75, 0x28, 0x77, 0x8f, 0x8e, 0x4c, 0x03, 0x01, 0xd4, 0x70, 0xaf, 0x3f, 0xb8,
-	0xec, 0x99, 0x25, 0xeb, 0x6b, 0x58, 0x56, 0x61, 0x9f, 0x13, 0x3e, 0x1f, 0xb2, 0xb0, 0xa3, 0x43,
-	0x7e, 0x2e, 0x23, 0xc6, 0xe4, 0x5a, 0x47, 0x5c, 0x38, 0x58, 0x8a, 0x4a, 0x8d, 0x61, 0x72, 0x7d,
-	0xff, 0xfc, 0x29, 0x6c, 0x07, 0x56, 0x14, 0xac, 0x7f, 0x99, 0x00, 0xd7, 0xa1, 0x26, 0x75, 0xb1,
-	0x76, 0xab, 0xbf, 0xac, 0x9f, 0xa0, 0xd1, 0xa5, 0x6e, 0xdf, 0xa1, 0xaf, 0xc9, 0x4c, 0x90, 0x7e,
-	0x43, 0x66, 0xda, 0x96, 0x58, 0xa2, 0x2f, 0xa1, 0x22, 0x69, 0x2b, 0x49, 0xda, 0xc0, 0x3e, 0xc4,
-	0x47, 0xc3, 0xb1, 0x90, 0x60, 0x29, 0xb7, 0x6e, 0x64, 0xd8, 0x7d, 0x87, 0xea, 0xb0, 0x5f, 0x40,
-	0x7d, 0x2a, 0x57, 0xca, 0x4f, 0x73, 0xff, 0x89, 0xad, 0xf4, 0x6f, 0x48, 0xcc, 0x89, 0xaf, 0x50,
-	0x38, 0xc1, 0xa0, 0x5d, 0x68, 0x32, 0x12, 0x46, 0x77, 0xc4, 0x7f, 0x4d, 0x66, 0x8a, 0xed, 0xe6,
-	0x3e, 0xd8, 0x69, 0x44, 0x38, 0xaf, 0xb6, 0xc6, 0x80, 0xee, 0x1b, 0x43, 0x4f, 0xb3, 0xa0, 0x8b,
-	0x7b, 0xe5, 0x01, 0xbe, 0x83, 0x9a, 0x72, 0x26, 0x8f, 0xa0, 0xe3, 0x51, 0x3b, 0x07, 0x94, 0x30,
-	0x87, 0x07, 0xd1, 0x04, 0x6b, 0x88, 0xf5, 0x63, 0x42, 0x6f, 0xdf, 0xa1, 0x92, 0xb5, 0x2d, 0xa8,
-	0x93, 0x09, 0x67, 0x41, 0x7a, 0x9c, 0x96, 0xb6, 0xdf, 0x9b, 0x70, 0x36, 0xc3, 0x89, 0xd2, 0xba,
-	0x80, 0x66, 0x4e, 0xfe, 0x48, 0x48, 0xdb, 0x49, 0xce, 0x54, 0x44, 0xc8, 0x96, 0x89, 0x77, 0xfc,
-	0x81, 0xfb, 0x0b, 0xf1, 0x64, 0x8d, 0x14, 0xd3, 0x7d, 0x7c, 0xeb, 0x2c, 0xac, 0x8a, 0xa5, 0x04,
-	0xb6, 0x05, 0x6d, 0x15, 0xb6, 0x40, 0xde, 0x2f, 0x8b, 0x14, 0xd7, 0x96, 0xc9, 0x3a, 0x64, 0xbe,
-	0x70, 0x42, 0xb8, 0xf5, 0xb3, 0xec, 0xbb, 0x8c, 0x06, 0xb1, 0xb3, 0x03, 0xf5, 0x78, 0xea, 0x79,
-	0x24, 0x8e, 0xf5, 0xde, 0xe4, 0x13, 0x3d, 0x85, 0x06, 0x61, 0x2c, 0x62, 0x5e, 0xe4, 0x8b, 0xd0,
-	0x8d, 0xed, 0x65, 0x9c, 0x09, 0xac, 0x53, 0x69, 0x6b, 0xf8, 0x7e, 0x72, 0xc6, 0x22, 0x4a, 0x18,
-	0x0f, 0x48, 0x8c, 0xbe, 0x00, 0x60, 0xc4, 0xf1, 0xc7, 0xbf, 0xb1, 0x80, 0x13, 0xd9, 0xca, 0xcb,
-	0xb8, 0x21, 0x24, 0x23, 0x21, 0x40, 0x9f, 0xc3, 0x12, 0x23, 0xfe, 0xd8, 0x55, 0x54, 0x08, 0x65,
-	0x9d, 0x11, 0xff, 0x40, 0x44, 0xfa, 0x56, 0x9e, 0xe8, 0x20, 0x9a, 0x4e, 0x34, 0x2b, 0xff, 0xbf,
-	0x34, 0x45, 0xc5, 0xbb, 0x53, 0xef, 0x86, 0xf0, 0x4e, 0x59, 0x6e, 0xd2, 0x5f, 0xd6, 0x1f, 0xd2,
-	0x76, 0x46, 0x78, 0x8c, 0xbe, 0x87, 0x96, 0x2b, 0x5c, 0x45, 0xea, 0x5b, 0xa7, 0x7a, 0xc5, 0x2e,
-	0x86, 0x80, 0x0b, 0x20, 0xf4, 0x0a, 0xd6, 0x39, 0x73, 0x26, 0xb1, 0xe3, 0x09, 0xee, 0xc6, 0x3e,
-	0x89, 0x3d, 0x16, 0x50, 0x1e, 0x31, 0x19, 0x50, 0x0b, 0x7f, 0x96, 0xd3, 0x1e, 0xa5, 0x4a, 0x2b,
-	0x96, 0x95, 0x92, 0x14, 0x20, 0xda, 0x83, 0x66, 0xce, 0xaa, 0xae, 0x98, 0x7b, 0x9e, 0xf3, 0x18,
-	0xb4, 0x07, 0x8d, 0x28, 0x49, 0xd9, 0x43, 0x45, 0x9d, 0xa1, 0xac, 0xbf, 0x4a, 0xb2, 0x73, 0xe6,
-	0x10, 0xe8, 0x25, 0x34, 0x3c, 0x35, 0x4b, 0x23, 0x2a, 0xd3, 0xd3, 0xdc, 0x5f, 0xb5, 0xe7, 0x27,
-	0x31, 0xce, 0x30, 0xe8, 0x19, 0x54, 0x63, 0xc2, 0x23, 0x2a, 0xd3, 0xd5, 0xdc, 0x5f, 0x2e, 0x4c,
-	0x51, 0xac, 0x74, 0x02, 0xc4, 0xc8, 0x75, 0x44, 0x3b, 0xe5, 0x0c, 0x94, 0xce, 0x35, 0xac, 0x74,
-	0x02, 0x14, 0x3a, 0x34, 0xa2, 0x9d, 0x6a, 0x06, 0x4a, 0xa7, 0x08, 0x56, 0x3a, 0xf4, 0x0d, 0xd4,
-	0x19, 0x51, 0x0e, 0x6b, 0x19, 0x2c, 0xad, 0x5f, 0x9c, 0x68, 0xd1, 0x16, 0xd4, 0xae, 0x6e, 0x1d,
-	0xe1, 0xb3, 0x2e, 0x71, 0x6d, 0xbb, 0xd0, 0x36, 0x58, 0x6b, 0xad, 0x5f, 0x65, 0x91, 0x6a, 0x1a,
-	0x74, 0x1e, 0xb7, 0xe6, 0x27, 0x56, 0x2b, 0x4f, 0x66, 0x36, 0xaa, 0x3e, 0x32, 0xdf, 0x57, 0xf0,
-	0x44, 0x90, 0xc4, 0x1d, 0xc6, 0x87, 0x19, 0x40, 0x34, 0x13, 0x0f, 0x42, 0x12, 0x73, 0x27, 0x54,
-	0xd4, 0xb7, 0x70, 0x26, 0x40, 0x7b, 0x00, 0x34, 0x6d, 0x23, 0x4d, 0xb6, 0xcc, 0x4c, 0xa1, 0xbf,
-	0x70, 0x0e, 0x64, 0x9d, 0x4a, 0x3f, 0x5d, 0x37, 0x2a, 0xfa, 0xf9, 0x70, 0xd4, 0xc6, 0x43, 0x51,
-	0xf7, 0x61, 0x4d, 0xd6, 0x41, 0x18, 0x06, 0x9f, 0xc2, 0xdc, 0x7b, 0x58, 0x57, 0x24, 0xf0, 0xc0,
-	0x2b, 0xb2, 0xff, 0x03, 0x34, 0x73, 0x5b, 0x74, 0xfd, 0xaf, 0xd9, 0x0b, 0x28, 0xc3, 0x79, 0x60,
-	0x3e, 0x6b, 0xa5, 0x07, 0xb2, 0x66, 0xcd, 0xe4, 0x41, 0x94, 0xe7, 0x7c, 0xcb, 0x7f, 0xac, 0xdf,
-	0x1d, 0xa8, 0x27, 0x53, 0xa2, 0xb4, 0x78, 0x4a, 0x24, 0x7a, 0xeb, 0x6f, 0x03, 0x36, 0x16, 0xd9,
-	0x7b, 0x78, 0xca, 0x3e, 0x54, 0x66, 0xc6, 0x07, 0x19, 0x2e, 0x0e, 0xe7, 0xf2, 0xfc, 0x70, 0xfe,
-	0xd7, 0x90, 0x6f, 0xa7, 0xe2, 0x25, 0x83, 0x76, 0xa1, 0xae, 0x5b, 0x5b, 0x37, 0xbf, 0xbc, 0x89,
-	0x8a, 0x0f, 0x2c, 0x9c, 0x40, 0xd0, 0x26, 0x94, 0x63, 0xc2, 0x75, 0x31, 0xb6, 0xed, 0xc2, 0x9b,
-	0x06, 0x0b, 0x95, 0x40, 0x30, 0x72, 0xad, 0xdb, 0x3e, 0x41, 0xe8, 0xf7, 0x07, 0x16, 0x2a, 0xb4,
-	0x05, 0xd5, 0xf0, 0x4e, 0x60, 0x2a, 0x12, 0x63, 0xda, 0x73, 0xaf, 0x14, 0xac, 0xd4, 0xc2, 0x52,
-	0xe8, 0x24, 0x4d, 0x9f, 0x58, 0xd2, 0x77, 0x32, 0x16, 0x2a, 0xf4, 0x0c, 0x2a, 0xa2, 0xa7, 0x75,
-	0xbf, 0xaf, 0xd8, 0xc5, 0xfb, 0x0f, 0x4b, 0xa5, 0xf5, 0xbb, 0x9c, 0x7a, 0xb9, 0xb4, 0x3f, 0xc2,
-	0xfd, 0xee, 0x7c, 0x72, 0x17, 0x5d, 0xcd, 0x09, 0xe4, 0x11, 0xca, 0xdf, 0xc9, 0xab, 0x5b, 0x75,
-	0xd0, 0x23, 0x6e, 0xbf, 0x82, 0xa6, 0x27, 0x71, 0x63, 0x31, 0x01, 0x74, 0x9e, 0x41, 0x89, 0x86,
-	0x41, 0x48, 0x1e, 0xf1, 0x34, 0x83, 0xce, 0xa2, 0x12, 0x97, 0x4e, 0x5f, 0x64, 0x27, 0x32, 0xb2,
-	0x9b, 0x62, 0x0e, 0x95, 0x1d, 0xc9, 0x06, 0xed, 0x56, 0x07, 0x52, 0x4a, 0xe8, 0xcf, 0xce, 0x81,
-	0x73, 0x88, 0x6f, 0xff, 0x34, 0xa0, 0x91, 0x5e, 0xbb, 0xa8, 0x09, 0xf5, 0xc3, 0xc1, 0xc5, 0x9b,
-	0x61, 0x0f, 0x9b, 0x65, 0xd4, 0x80, 0xea, 0x00, 0x9f, 0xf7, 0x86, 0x66, 0x45, 0xbc, 0x86, 0x4f,
-	0x47, 0x23, 0xdc, 0x3b, 0x31, 0xab, 0x42, 0xdc, 0xbf, 0x14, 0xcb, 0x1a, 0x5a, 0x82, 0xca, 0x49,
-	0xbf, 0x7b, 0x66, 0x2e, 0x09, 0x21, 0x1e, 0x09, 0x2c, 0xc8, 0x25, 0x16, 0xd2, 0x26, 0x6a, 0x03,
-	0x1c, 0x77, 0x87, 0x89, 0xc5, 0x96, 0x30, 0x7f, 0x7c, 0xda, 0x3d, 0x19, 0xf7, 0x46, 0xe6, 0x72,
-	0xfa, 0x71, 0x34, 0x32, 0xdb, 0x07, 0xaf, 0x60, 0xc3, 0x8b, 0x42, 0xdb, 0x75, 0xe2, 0x77, 0x91,
-	0xcd, 0x02, 0xe7, 0x46, 0xfd, 0x57, 0xb8, 0xd3, 0xab, 0x03, 0xe8, 0xea, 0x5f, 0x8d, 0xb3, 0x83,
-	0xb7, 0xe9, 0x6f, 0x87, 0x77, 0x1b, 0x90, 0x09, 0xff, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x97, 0x3f,
-	0xb4, 0x5b, 0x87, 0x0c, 0x00, 0x00,
+var fileDescriptor_97d48018c08bbbb3 = []byte{
+	// 1359 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0x4b, 0x6f, 0xdb, 0xc6,
+	0x13, 0x07, 0x25, 0x59, 0xb2, 0x86, 0xb2, 0xac, 0x6c, 0xf2, 0x77, 0xf4, 0x2f, 0xd2, 0x54, 0x65,
+	0x52, 0xc7, 0x69, 0x13, 0x06, 0x71, 0x90, 0xf6, 0x54, 0xa0, 0xb2, 0xa4, 0x18, 0x6d, 0xac, 0x38,
+	0x58, 0x2b, 0x31, 0x90, 0x8b, 0x40, 0x91, 0x13, 0x87, 0xb5, 0x44, 0xb2, 0xcb, 0x95, 0x1b, 0x15,
+	0xbd, 0x16, 0x68, 0xaf, 0x3d, 0xf5, 0x83, 0xf6, 0x03, 0x14, 0xfb, 0xe0, 0x4b, 0x7e, 0x08, 0x4d,
+	0x7a, 0xe3, 0xce, 0xfc, 0x76, 0x66, 0xf6, 0x37, 0x8f, 0x5d, 0x42, 0xd3, 0x09, 0xb8, 0xef, 0x85,
+	0x1c, 0xed, 0x88, 0x85, 0x3c, 0xb4, 0xbe, 0x83, 0x46, 0x37, 0x9a, 0x0c, 0x18, 0x0b, 0x19, 0xc5,
+	0x38, 0x22, 0x5b, 0x50, 0x45, 0xc6, 0x66, 0xf1, 0x49, 0xdb, 0xe8, 0x94, 0x76, 0x1a, 0x54, 0xaf,
+	0x48, 0x1b, 0x6a, 0xc8, 0x98, 0x1b, 0x7a, 0xd8, 0x2e, 0x75, 0x4a, 0x3b, 0x1b, 0x34, 0x59, 0x5a,
+	0x77, 0xa1, 0xd5, 0x8d, 0x26, 0xbd, 0x70, 0x1e, 0x70, 0x64, 0xaf, 0x22, 0xcf, 0xe1, 0x48, 0x5a,
+	0x50, 0xf6, 0x03, 0xb7, 0x6d, 0x74, 0x8c, 0x1d, 0x42, 0xc5, 0xa7, 0x75, 0x1f, 0xae, 0x75, 0xa3,
+	0xc9, 0x3e, 0x72, 0x0d, 0x94, 0xce, 0x6e, 0xc0, 0xda, 0x99, 0x33, 0x9d, 0xa3, 0xf4, 0x75, 0x8d,
+	0xaa, 0x85, 0xf5, 0x87, 0x21, 0x63, 0x3a, 0x42, 0xae, 0xad, 0x3d, 0x82, 0x6a, 0x18, 0xf1, 0x45,
+	0xa4, 0x70, 0xcd, 0xdd, 0x9b, 0x76, 0x5e, 0x6d, 0x1f, 0x21, 0x3f, 0x8c, 0x46, 0x8b, 0x08, 0xa9,
+	0x86, 0x11, 0x02, 0x15, 0xc7, 0xf3, 0xe2, 0x76, 0xa9, 0x53, 0xde, 0x69, 0x50, 0xf9, 0x2d, 0x64,
+	0x0c, 0x67, 0x71, 0xbb, 0xac, 0x64, 0xe2, 0xdb, 0xea, 0x40, 0x3d, 0xdd, 0x4c, 0x6a, 0x50, 0xee,
+	0xf6, 0xfb, 0x2d, 0x83, 0x00, 0x54, 0xe9, 0x60, 0x78, 0xf8, 0x7a, 0xd0, 0x2a, 0x59, 0x5f, 0xc0,
+	0x86, 0x0a, 0xfb, 0x08, 0xf9, 0x72, 0xc8, 0xc2, 0x8e, 0x0e, 0xf9, 0xae, 0x8c, 0x98, 0xe2, 0x89,
+	0x8e, 0xb8, 0x70, 0xb0, 0x14, 0x95, 0x1a, 0xa3, 0x78, 0x72, 0xfe, 0xfc, 0x29, 0xec, 0x3e, 0x6c,
+	0x2a, 0xd8, 0xf0, 0x75, 0x02, 0xdc, 0x82, 0xaa, 0xd4, 0xc5, 0xda, 0xad, 0x5e, 0x59, 0xdf, 0x42,
+	0xbd, 0x1b, 0x4d, 0x86, 0x4e, 0xf4, 0x1c, 0x17, 0x82, 0xf4, 0x53, 0x5c, 0x68, 0x5b, 0xe2, 0x93,
+	0xdc, 0x86, 0x8a, 0xa4, 0xad, 0x24, 0x69, 0x03, 0xbb, 0x47, 0xfb, 0xa3, 0xb1, 0x90, 0x50, 0x29,
+	0xb7, 0x4e, 0x65, 0xd8, 0x43, 0x27, 0xd2, 0x61, 0x3f, 0x84, 0xda, 0x5c, 0x7e, 0x29, 0x3f, 0xe6,
+	0xee, 0x75, 0x5b, 0xe9, 0x5f, 0x60, 0xcc, 0xd1, 0x53, 0x28, 0x9a, 0x60, 0xc8, 0x03, 0x30, 0x19,
+	0xce, 0xc2, 0x33, 0xf4, 0x9e, 0xe3, 0x42, 0xb1, 0x6d, 0xee, 0x82, 0x9d, 0x46, 0x44, 0xf3, 0x6a,
+	0x6b, 0x0c, 0xe4, 0xbc, 0x31, 0x72, 0x2b, 0x0b, 0xba, 0xb8, 0x57, 0x1e, 0xe0, 0x2b, 0xa8, 0x2a,
+	0x67, 0xf2, 0x08, 0x3a, 0x1e, 0xb5, 0xf3, 0x30, 0x42, 0xe6, 0x70, 0x3f, 0x0c, 0xa8, 0x86, 0x58,
+	0xdf, 0x24, 0xf4, 0x0e, 0x9d, 0x48, 0xb2, 0xb6, 0x0d, 0x35, 0x0c, 0x38, 0xf3, 0xd3, 0xe3, 0x34,
+	0xb4, 0xfd, 0x41, 0xc0, 0xd9, 0x82, 0x26, 0x4a, 0xeb, 0x15, 0x98, 0x39, 0xf9, 0x8a, 0x90, 0x76,
+	0x92, 0x9c, 0xa9, 0x88, 0x88, 0x2d, 0x13, 0xef, 0x78, 0x87, 0x93, 0x1f, 0xd1, 0x95, 0x35, 0x52,
+	0x4c, 0xf7, 0xb3, 0xa9, 0x73, 0x61, 0x55, 0xac, 0x27, 0xb0, 0x6d, 0x68, 0xaa, 0xb0, 0x05, 0xf2,
+	0x7c, 0x59, 0xa4, 0xb8, 0xa6, 0x4c, 0x56, 0x8f, 0x79, 0xc2, 0x09, 0x72, 0xeb, 0x07, 0xd9, 0x77,
+	0x19, 0x0d, 0x62, 0x67, 0x1b, 0x6a, 0xf1, 0xdc, 0x75, 0x31, 0x8e, 0xf5, 0xde, 0x64, 0x49, 0x6e,
+	0x41, 0x1d, 0x45, 0x93, 0xeb, 0x0e, 0x36, 0x76, 0x36, 0x68, 0x26, 0xb0, 0xfe, 0x32, 0xa4, 0xb1,
+	0xd1, 0xfb, 0xe0, 0x25, 0x0b, 0x23, 0x64, 0xdc, 0xc7, 0x98, 0x7c, 0x0a, 0xc0, 0xd0, 0xf1, 0xc6,
+	0x3f, 0x33, 0x9f, 0xa3, 0xec, 0xe5, 0x0d, 0x5a, 0x17, 0x92, 0x63, 0x21, 0x20, 0xff, 0x87, 0x75,
+	0x86, 0xde, 0x78, 0xa2, 0xb8, 0x10, 0xca, 0x1a, 0x43, 0x6f, 0x6f, 0x3a, 0x47, 0xf2, 0x39, 0x34,
+	0xe2, 0x77, 0x8e, 0xd0, 0x4e, 0x43, 0xf7, 0x34, 0xe9, 0x39, 0x53, 0xc9, 0x0e, 0x84, 0x88, 0xdc,
+	0x83, 0x4d, 0x7c, 0xef, 0x4e, 0xe7, 0xb1, 0x7f, 0x86, 0x1a, 0x55, 0x91, 0xa8, 0x66, 0x2a, 0x96,
+	0x40, 0xeb, 0x8d, 0xa4, 0x67, 0x2f, 0x9c, 0x07, 0x9a, 0xe2, 0x7f, 0x5f, 0xe7, 0xa2, 0x7d, 0x26,
+	0x73, 0xf7, 0x14, 0x79, 0xbb, 0xac, 0x86, 0x9a, 0x5a, 0x59, 0xbf, 0x4a, 0xdb, 0x59, 0xf6, 0x62,
+	0xf2, 0x04, 0x1a, 0x13, 0xe1, 0x2a, 0x54, 0x6b, 0x5d, 0x37, 0x9b, 0x76, 0x31, 0x04, 0x5a, 0x00,
+	0x91, 0xa7, 0xb0, 0xc5, 0x99, 0x13, 0xc4, 0x8e, 0x2b, 0x12, 0x31, 0xf6, 0x30, 0x76, 0x99, 0x1f,
+	0xf1, 0x90, 0xc9, 0x80, 0x1a, 0xf4, 0x7f, 0x39, 0x6d, 0x3f, 0x55, 0x5a, 0xb1, 0x2c, 0xbb, 0xa4,
+	0x9a, 0xc9, 0x63, 0x30, 0x73, 0x56, 0x75, 0xf9, 0x9d, 0xf3, 0x9c, 0xc7, 0x90, 0xc7, 0x50, 0x0f,
+	0x93, 0xfc, 0x5f, 0xd5, 0x21, 0x19, 0xca, 0xfa, 0xad, 0x24, 0xdb, 0x70, 0x09, 0x41, 0x1e, 0x41,
+	0xdd, 0x55, 0x83, 0x39, 0x8c, 0x64, 0xaa, 0xcd, 0xdd, 0x6b, 0xf6, 0xf2, 0x58, 0xa7, 0x19, 0x86,
+	0xdc, 0x81, 0xb5, 0x18, 0x79, 0x18, 0xc9, 0xd4, 0x9b, 0xbb, 0x1b, 0x85, 0x91, 0x4c, 0x95, 0x4e,
+	0x80, 0x18, 0x9e, 0x84, 0x51, 0xbb, 0x9c, 0x81, 0xd2, 0x21, 0x49, 0x95, 0x4e, 0x80, 0x66, 0x4e,
+	0x14, 0x46, 0xed, 0xb5, 0x0c, 0x94, 0x8e, 0x24, 0xaa, 0x74, 0xe4, 0x1e, 0xd4, 0x18, 0x2a, 0x87,
+	0xd5, 0x0c, 0x96, 0x36, 0x03, 0x4d, 0xb4, 0x64, 0x1b, 0xaa, 0x6f, 0xa7, 0x8e, 0xf0, 0x59, 0x93,
+	0xb8, 0xa6, 0x5d, 0xe8, 0x41, 0xaa, 0xb5, 0xd6, 0x4f, 0xb2, 0xe0, 0x35, 0x0d, 0x3a, 0x8f, 0xdb,
+	0xcb, 0xe3, 0xaf, 0x91, 0x27, 0x33, 0x9b, 0x7b, 0x1f, 0x98, 0xef, 0xb7, 0x70, 0x5d, 0x90, 0xc4,
+	0x1d, 0xc6, 0x47, 0x19, 0x40, 0x74, 0x26, 0xf7, 0x67, 0x18, 0x73, 0x67, 0xa6, 0xa8, 0x6f, 0xd0,
+	0x4c, 0x40, 0x1e, 0x03, 0x44, 0x69, 0x4b, 0x6a, 0xb2, 0x65, 0x66, 0x0a, 0xbd, 0x4a, 0x73, 0x20,
+	0xeb, 0x40, 0xfa, 0xe9, 0x4e, 0xc2, 0xa2, 0x9f, 0xcb, 0xa3, 0x36, 0xae, 0x8a, 0x7a, 0x08, 0x37,
+	0x64, 0x1d, 0xcc, 0x66, 0xfe, 0x7f, 0x61, 0xee, 0x3d, 0x6c, 0x29, 0x12, 0xb8, 0xef, 0x16, 0xd9,
+	0xff, 0x1a, 0xcc, 0xdc, 0x16, 0x5d, 0xff, 0x37, 0xec, 0x0b, 0x28, 0xa3, 0x79, 0x60, 0x3e, 0x6b,
+	0xa5, 0x2b, 0xb2, 0x66, 0x2d, 0xe4, 0x41, 0x94, 0xe7, 0x7c, 0xcb, 0x7f, 0xa8, 0xdf, 0xfb, 0x50,
+	0x4b, 0xa6, 0x44, 0xe9, 0xe2, 0x29, 0x91, 0xe8, 0xad, 0xdf, 0x0d, 0xb8, 0x79, 0x91, 0xbd, 0xab,
+	0x47, 0xf6, 0x55, 0x65, 0x66, 0x5c, 0xca, 0x70, 0x71, 0xd2, 0x97, 0x97, 0x27, 0xfd, 0xdf, 0x86,
+	0x7c, 0x88, 0x15, 0x6f, 0x2c, 0xf2, 0x00, 0x6a, 0xba, 0xb5, 0x75, 0xf3, 0xcb, 0x6b, 0xad, 0xf8,
+	0x5a, 0xa3, 0x09, 0x84, 0x74, 0xa0, 0x1c, 0x23, 0xd7, 0xc5, 0xd8, 0xb4, 0x0b, 0x0f, 0x24, 0x2a,
+	0x54, 0x02, 0xc1, 0xf0, 0x44, 0xb7, 0x7d, 0x82, 0xd0, 0x8f, 0x19, 0x2a, 0x54, 0x64, 0x1b, 0xd6,
+	0x66, 0x67, 0x02, 0x53, 0x91, 0x98, 0x96, 0xbd, 0xf4, 0xe4, 0xa1, 0x4a, 0x2d, 0x2c, 0xcd, 0x9c,
+	0xa4, 0xe9, 0x13, 0x4b, 0xfa, 0x82, 0xa7, 0x42, 0x45, 0xee, 0x40, 0x45, 0xf4, 0xb4, 0xee, 0xf7,
+	0x4d, 0xbb, 0x78, 0x99, 0x52, 0xa9, 0xb4, 0x7e, 0x91, 0x53, 0x2f, 0x97, 0xf6, 0x15, 0xdc, 0x3f,
+	0x58, 0x4e, 0xee, 0x45, 0xf7, 0x7c, 0x02, 0x59, 0x41, 0xf9, 0x3b, 0xf9, 0x0e, 0x50, 0x1d, 0xb4,
+	0xc2, 0xed, 0x67, 0x60, 0xba, 0x12, 0x37, 0x16, 0x13, 0x40, 0xe7, 0x19, 0x94, 0x68, 0xe4, 0xcf,
+	0x70, 0x85, 0xa7, 0x05, 0xb4, 0x2f, 0x2a, 0x71, 0xe9, 0xf4, 0x61, 0x76, 0x22, 0x23, 0xbb, 0x29,
+	0x96, 0x50, 0xd9, 0x91, 0x6c, 0xd0, 0x6e, 0x75, 0x20, 0xa5, 0x84, 0xfe, 0xec, 0x1c, 0x34, 0x87,
+	0xb0, 0xee, 0xc8, 0xcb, 0xac, 0xc7, 0xd0, 0xe1, 0xd8, 0xef, 0x89, 0x27, 0x4c, 0x10, 0x7a, 0x7a,
+	0x90, 0xd6, 0xa9, 0x5a, 0x58, 0xdf, 0xcb, 0x97, 0x6d, 0x02, 0xfa, 0xa8, 0x17, 0xcb, 0x2d, 0xf8,
+	0x24, 0xa9, 0xd0, 0x20, 0xc0, 0xf3, 0x53, 0xe6, 0xf6, 0xe5, 0xda, 0x15, 0x7e, 0x6f, 0x03, 0x9c,
+	0x6b, 0xb5, 0x9c, 0x64, 0x45, 0x0a, 0x9e, 0xa8, 0x23, 0x2a, 0xb7, 0xa3, 0xb0, 0xdf, 0x8b, 0x49,
+	0x07, 0xcc, 0x6c, 0x7b, 0xf2, 0x82, 0xcf, 0x8b, 0xac, 0xa1, 0x9c, 0xd8, 0xf9, 0x4d, 0x1f, 0xc3,
+	0xcd, 0x97, 0x7f, 0x1a, 0x50, 0x4f, 0x9f, 0x40, 0xc4, 0x84, 0x5a, 0xef, 0xf0, 0xd5, 0x8b, 0xd1,
+	0x80, 0xb6, 0xca, 0xa4, 0x0e, 0x6b, 0x87, 0xf4, 0x68, 0x30, 0x6a, 0x55, 0xc4, 0x6f, 0xce, 0xc1,
+	0xf1, 0x31, 0x1d, 0xec, 0xb7, 0xd6, 0x84, 0x78, 0xf8, 0x5a, 0x7c, 0x56, 0xc9, 0x3a, 0x54, 0xf6,
+	0x87, 0xdd, 0x97, 0xad, 0x75, 0x21, 0xa4, 0xc7, 0x02, 0x0b, 0xf2, 0x93, 0x0a, 0xa9, 0x49, 0x9a,
+	0x00, 0xcf, 0xba, 0xa3, 0xc4, 0x62, 0x43, 0x98, 0x7f, 0x76, 0xd0, 0xdd, 0x1f, 0x0f, 0x8e, 0x5b,
+	0x1b, 0xe9, 0xa2, 0x7f, 0xdc, 0x6a, 0x92, 0x06, 0xac, 0xef, 0x25, 0xb8, 0xcd, 0xbd, 0xa7, 0x70,
+	0xd3, 0x0d, 0x67, 0xf6, 0xc4, 0x89, 0xdf, 0x85, 0x36, 0xf3, 0x9d, 0x53, 0xf5, 0x03, 0x3a, 0x99,
+	0xbf, 0xdd, 0x83, 0xae, 0xfe, 0x27, 0x7d, 0xb9, 0xf7, 0x26, 0xfd, 0x3f, 0x75, 0xa7, 0x3e, 0x06,
+	0xfc, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x12, 0x1a, 0x11, 0xd0, 0xb0, 0x0e, 0x00, 0x00,
 }
